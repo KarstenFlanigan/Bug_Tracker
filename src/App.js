@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 import Table from 'react-bootstrap/Table'
@@ -6,81 +7,145 @@ import React from 'react'
 import './App.css'
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
 
-class App extends React.Component {
-  render() {
-    return (
-      <Router>
-        <Container fluid>
-          <NavigationBar />
-        </Container>
-      </Router>
-    )
-  }
+function App() {
+  return (
+    <Router>
+      <Container fluid>
+        <TicketTableParent />
+        <Home />
+      </Container>
+    </Router>
+  )
 }
 
 // Top Navigation Bar
 // Link, Switch and Route Path are React Router for SPA Style Pages
-class NavigationBar extends React.Component {
-  render() {
-    return (
-      <Router>
-        <Navbar bg="primary" expand="lg">
-          <Navbar.Brand as={Link} to="/Home"><h3>Bug Tracker</h3></Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav defaultActiveKey="/home" as="ul">
-              <Nav.Item as="li">
-                <Nav.Link as={Link} to="/Developers" >Developers</Nav.Link>
-              </Nav.Item>
-              <Nav.Item as="li">
-                <Nav.Link as={Link} to="/Applications">Applications</Nav.Link>
-              </Nav.Item>
-            </Nav>
-          </Navbar.Collapse>
-        </Navbar>
+function NavigationBar() {
+  return (
+    <Router>
+      <Navbar bg="primary" expand="lg">
+        <Navbar.Brand as={Link} to="/Home"><h3>Bug Tracker</h3></Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav defaultActiveKey="/home" as="ul">
+            <Nav.Item as="li">
+              <Nav.Link as={Link} to="/Developers" >Developers</Nav.Link>
+            </Nav.Item>
+            <Nav.Item as="li">
+              <Nav.Link as={Link} to="/Applications">Applications</Nav.Link>
+            </Nav.Item>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
 
-        <Switch>
-          <Route path="/home">
-            <Home />
-          </Route>
-          <Route path="/developers">
-            <Developers />
-          </Route>
-          <Route path="/applications">
-            <Applications />
-          </Route>
-        </Switch>
-      </Router>
-    )
-  }
+      <Switch>
+        <Route path="/home">
+          <Home />
+        </Route>
+        <Route path="/developers">
+          <Developers />
+        </Route>
+        <Route path="/applications">
+          <Applications />
+        </Route>
+      </Switch>
+    </Router>
+  )
 }
 
-class Home extends React.Component {
-  render() {
-    return (
-      <Router>
-        <TicketTable />
-      </Router>
-    )
-  }
+function Home() {
+  return (
+    <Router>
+      <NavigationBar />
+      <TicketTable />
+      <h1>Home</h1>
+    </Router>
+  )
 }
 
-class Developers extends React.Component {
-  render() {
-    return (
-      <h1>Developers</h1>
-    )
-  }
+function Developers() {
+  return (
+    <h1>Developers</h1>
+  )
 }
 
-class Applications extends React.Component {
-  render() {
-    return (
-      <h1>Applications</h1>
-    )
-  }
+function Applications() {
+  return (
+    <h1>Applications</h1>
+  )
 }
 
+function TicketTableParent() {
+  //Will change to API returned JSON
+  const tableData = [
+    { id: 1, name: 'first ticket' },
+    { id: 2, name: 'second ticket' },
+    { id: 3, name: 'third ticket' },
+    { id: 4, name: 'fourth ticket' }
+  ]
+
+  const schema =
+  {
+    id: "",
+    name: ""
+  }
+
+  return (
+    <div>
+      <TicketTable headers={Object.keys(schema)} rows={tableData} />
+    </div>
+  )
+}
+
+const TicketTable = (props) => {
+  const { headers, rows } = props;
+  return (
+    <Table striped bordered hover responsive="md">
+      <TableHeader headers={headers}></TableHeader>
+      <TableBody headers={headers} rows={rows}></TableBody>
+    </Table>
+  )
+}
+
+const TableHeader = (props) => {
+  const { headers } = props;
+
+  return (
+    <thead className="thead-dark" key="header-1">
+      <tr key="header-0">
+        {headers && headers.map((value, index) => {
+          return <th key={index}><div>{value}</div></th>
+        })}
+      </tr>
+    </thead>
+  )
+}
+
+const TableBody = (props) => {
+  const { headers, rows } = props;
+
+  function buildRow(row, headers) {
+    return (
+      <tr key={row.id}>
+        {headers.map((value, index) => {
+          return <td key={index}>{row[value]}</td>
+        })}
+      </tr>
+    )
+  }
+  return (
+    <tbody>
+      {rows && rows.map((value) => {
+        return buildRow(value, headers)
+      })}
+    </tbody>
+  )
+}
+
+
+
+/*
+ 
 class TicketTable extends React.Component {
   constructor(props) {
     super(props)
@@ -90,7 +155,7 @@ class TicketTable extends React.Component {
       ]
     }
   }
-
+ 
   getTableData() {
     // Make API Calls once APIs are built
     // API Call Code Here
@@ -103,22 +168,22 @@ class TicketTable extends React.Component {
       { id: 3, name: 'third ticket' },
       { id: 4, name: 'fourth ticket' }
     ]
-
+ 
     console.log(results)
     return results
   }
-
+ 
   componentDidMount() {
     const ticketArray = this.getTableData()
-
+ 
     this.setState({
       tickets: ticketArray
     })
-
+ 
     // How do I access this.setstate.tickets
     // console.log(this.setState[tickets]);
   }
-
+ 
   renderTableData() {
     return this.state.tickets.map((ticket) => {
       const { id, name } = ticket
@@ -130,7 +195,7 @@ class TicketTable extends React.Component {
       )
     })
   }
-
+ 
   renderTableHeader() {
     // Only get first object since they will all have the same keys
     // from the API Call
@@ -139,7 +204,7 @@ class TicketTable extends React.Component {
       return <th key={index}>{key.toUpperCase()}</th>
     })
   }
-
+ 
   render() {
     return (
       <Table striped bordered hover responsive="md">
@@ -148,9 +213,10 @@ class TicketTable extends React.Component {
           {this.renderTableData()}
         </tbody>
       </Table>
-
+ 
     )
   }
 }
+*/
 
 export default App
