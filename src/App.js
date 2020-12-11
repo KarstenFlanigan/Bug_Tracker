@@ -3,79 +3,73 @@ import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 import Table from 'react-bootstrap/Table'
 import Container from 'react-bootstrap/Container'
+import Dropdown from 'react-bootstrap/Dropdown'
 import React from 'react'
 import './App.css'
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
+import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom'
 
 function App() {
   return (
-    <Router>
-      <Container fluid>
-        <TicketTableParent />
-        <Home />
-      </Container>
-    </Router>
-  )
-}
-
-// Top Navigation Bar
-// Link, Switch and Route Path are React Router for SPA Style Pages
-function NavigationBar() {
-  return (
-    <Router>
-      <Navbar bg="primary" expand="lg">
-        <Navbar.Brand as={Link} to="/Home"><h3>Bug Tracker</h3></Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav defaultActiveKey="/home" as="ul">
-            <Nav.Item as="li">
-              <Nav.Link as={Link} to="/Developers" >Developers</Nav.Link>
-            </Nav.Item>
-            <Nav.Item as="li">
-              <Nav.Link as={Link} to="/Applications">Applications</Nav.Link>
-            </Nav.Item>
-          </Nav>
-        </Navbar.Collapse>
-      </Navbar>
-
-      <Switch>
-        <Route path="/home">
-          <Home />
-        </Route>
-        <Route path="/developers">
-          <Developers />
-        </Route>
-        <Route path="/applications">
-          <Applications />
-        </Route>
-      </Switch>
-    </Router>
+    <Container fluid>
+      <Router>
+        <Navbar bg="primary" expand="lg">
+          <Navbar.Brand as={Link} to="/home"><h3>Bug Tracker</h3></Navbar.Brand>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav defaultActiveKey="/home" as="ul">
+              <Nav.Item as="li">
+                <Nav.Link as={Link} to="/developers" >Developers</Nav.Link>
+              </Nav.Item>
+              <Nav.Item as="li">
+                <Nav.Link as={Link} to="/applications">Applications</Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Navbar.Collapse>
+        </Navbar>
+        <Switch>
+          <Route exact path="/">
+            <Redirect to="/home" />
+          </Route>
+          <Route path="/home">
+            <Home />
+          </Route>
+          <Route path="/developers">
+            <Developers />
+          </Route>
+          <Route path="/applications">
+            <Applications />
+          </Route>
+        </Switch>
+      </Router>
+    </Container>
   )
 }
 
 function Home() {
   return (
-    <Router>
-      <NavigationBar />
-      <TicketTable />
-      <h1>Home</h1>
-    </Router>
+    <div>
+      <TableType />
+    </div>
   )
 }
 
 function Developers() {
   return (
-    <h1>Developers</h1>
+    <div>
+      <h1>Developers</h1>
+    </div>
   )
 }
 
 function Applications() {
   return (
-    <h1>Applications</h1>
+    <div>
+      <h1>Applications</h1>
+    </div>
   )
 }
 
-function TicketTableParent() {
+function TableType() {
   //Will change to API returned JSON
   const tableData = [
     { id: 1, name: 'first ticket' },
@@ -92,15 +86,16 @@ function TicketTableParent() {
 
   return (
     <div>
-      <TicketTable headers={Object.keys(schema)} rows={tableData} />
+      <TableView headers={Object.keys(schema)} rows={tableData} />
     </div>
   )
 }
 
-const TicketTable = (props) => {
+const TableView = (props) => {
   const { headers, rows } = props;
   return (
     <Table striped bordered hover responsive="md">
+      <TableFilter />
       <TableHeader headers={headers}></TableHeader>
       <TableBody headers={headers} rows={rows}></TableBody>
     </Table>
@@ -139,6 +134,30 @@ const TableBody = (props) => {
         return buildRow(value, headers)
       })}
     </tbody>
+  )
+}
+
+//Need to pass in Filter Objects
+const TableFilter = () => {
+  const headers =
+    [
+      { id: "1", name: "james" },
+      { id: "1", name: "chris" },
+      { id: "1", name: "bob" }
+    ];
+
+  return (
+    < Dropdown >
+      <Dropdown.Toggle>
+        Filter
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu>
+        {headers.map((value, key) => {
+          return <Dropdown.Item key={key} href="" >{value.name}</Dropdown.Item>
+        })}
+      </Dropdown.Menu>
+    </Dropdown >
   )
 }
 
