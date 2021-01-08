@@ -9,9 +9,7 @@ import TableType from './TableType'
 
 function Home() {
     return (
-        <div>
-            <TableType />
-        </div>
+        <TableType />
     )
 }
 
