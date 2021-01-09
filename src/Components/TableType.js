@@ -167,7 +167,7 @@ const FilterButton = (props) => {
                   </Dropdown.Menu>
                 </Dropdown>
                 :
-                <Button variant="success" size="md" onClick={() => handleClick3()}>clear {filterColumn} filter</Button>
+                <Button variant="success" size="md" onClick={() => handleClick3()}>Clear {filterColumn} Filter</Button>
           }
         </ListGroup.Item>
       </ListGroup>
