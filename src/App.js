@@ -3,7 +3,6 @@
 import React from 'react'
 import './App.css'
 import Container from 'react-bootstrap/Container'
-
 //Must have for react-router to work, don't copy/paste, need to manually add and then make eslint exception
 // eslint-disable-next-line no-unused-vars
 import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom'
@@ -14,9 +13,9 @@ import Navigation from './Components/Navigation'
 function App() {
 
   return (
-    <Container fluid>
+    <Container>
       <Navigation />
-    </Container >
+    </Container>
   )
 }
 
