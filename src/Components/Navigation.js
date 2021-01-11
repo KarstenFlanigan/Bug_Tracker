@@ -24,6 +24,9 @@ function Navigation() {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav defaultActiveKey="/home" as="ul">
                         <Nav.Item as="li">
+                            <Nav.Link as={Link} to="/home" >Home</Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item as="li">
                             <Nav.Link as={Link} to="/developers" >Developers</Nav.Link>
                         </Nav.Item>
                         <Nav.Item as="li">

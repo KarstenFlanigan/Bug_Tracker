@@ -3,5 +3,6 @@
 .pnp.js
 package-lock.json
 debug.log
-*eslint*
-*.eslintrc*
+*lint*
+
+

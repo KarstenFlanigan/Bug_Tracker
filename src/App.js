@@ -13,7 +13,7 @@ import Navigation from './Components/Navigation'
 function App() {
 
   return (
-    <Container>
+    <Container fluid="lg">
       <Navigation />
     </Container>
   )
