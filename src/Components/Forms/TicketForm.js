@@ -1,16 +1,44 @@
-import React from 'react'
+import React, { useState } from 'react'
 // eslint-disable-next-line no-unused-vars
 import { BrowserRouter as Router, Switch, Route, Link, Redirect, useHistory, useParams, withRouter } from 'react-router-dom'
 import Form from 'react-bootstrap/Form'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
+import Button from 'react-bootstrap/Button'
 //Custom hook that handles all fields typed 
-import { useFormFields } from '../Libs/hooksLib'
+import { useFormFields } from '../Libs/CustomHooks.js'
 
 
 function TicketForm() {
     const { crud, id } = useParams()
-    const [fields, handleFieldChange] = useFormFields({})
+    const [fields, handleFieldChange] = useFormFields(
+        {
+            "dueCreated": new Date()
+        }
+    )
+    const [dateDue, setdateDue] = useState()
+    const [currentDate] = useState(new Date())
+
+    const handleSeverity = (event) => {
+        let High = `"High"`
+        let Medium = `"Medium"`
+        let Low = `"Low"`
+        let Severity = JSON.stringify(event.target.value)
+        let dueDate = new Date()
+
+        if (Severity == High) {
+            dueDate.setDate(dueDate.getDate() + 1)
+        } else if (Severity == Medium) {
+            dueDate.setDate(dueDate.getDate() + 5)
+        } else if (Severity == Low) {
+            dueDate.setDate(dueDate.getDate() + 10)
+        }
+
+        setdateDue(dueDate)
+    }
+
+    //fields.push({ target: { value: new Date(), id: "dueDate" } })
+    //,{target: {value: new Date(), id: "dueDate" } }
 
     console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
 
@@ -49,7 +77,7 @@ function TicketForm() {
                 <Col lg={4} md={4}>
                     <Form.Group controlId="severity">
                         <Form.Label >Severity</Form.Label>
-                        <Form.Control as="select" onChange={handleFieldChange}>
+                        <Form.Control as="select" onChange={handleSeverity}>
                             <option>Choose...</option>
                             <option>Low</option>
                             <option>Medium</option>
@@ -80,13 +108,16 @@ function TicketForm() {
                 <Col lg={4} md={6}>
                     <Form.Group controlId="dateCreated">
                         <Form.Label >Date Created</Form.Label>
-                        <Form.Control readOnly defaultValue="Function for Current Date" />
+                        <Form.Control readOnly defaultValue={currentDate.toDateString()} />
                     </Form.Group>
                 </Col>
                 <Col lg={4} md={6} >
                     <Form.Group controlId="dueDate">
                         <Form.Label >Due Date</Form.Label>
-                        <Form.Control readOnly defaultValue="Based on Severity" />
+                        <Form.Control
+                            readOnly
+                            defaultValue={dateDue}
+                        />
                     </Form.Group>
                 </Col>
                 <Col lg={4} md={6} >
@@ -96,6 +127,8 @@ function TicketForm() {
                     </Form.Group>
                 </Col>
             </Row>
+
+            <Button type="submit">Submit</Button>
 
         </Form >
     )
