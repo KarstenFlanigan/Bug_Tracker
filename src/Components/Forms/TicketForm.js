@@ -13,13 +13,16 @@ function TicketForm() {
     const { crud, id } = useParams()
     const [fields, handleFieldChange] = useFormFields(
         {
-            "dueCreated": new Date()
+            "dateCreated": new Date().toDateString()
         }
     )
     const [dateDue, setdateDue] = useState()
     const [currentDate] = useState(new Date())
 
+
+    //Handle when severity is chosen
     const handleSeverity = (event) => {
+
         let High = `"High"`
         let Medium = `"Medium"`
         let Low = `"Low"`
@@ -33,12 +36,18 @@ function TicketForm() {
         } else if (Severity == Low) {
             dueDate.setDate(dueDate.getDate() + 10)
         }
+        //Adds Severity to handlefieldchange hook
+        handleFieldChange(event)
 
+        //Setting date based on logic
         setdateDue(dueDate)
+
+        //New event to trigger dueDate's OnChange 
+        let newEvent = new Event("input", { "bubbles": true })
+        let element = document.getElementById("dueDate")
+        element.dispatchEvent(newEvent)
     }
 
-    //fields.push({ target: { value: new Date(), id: "dueDate" } })
-    //,{target: {value: new Date(), id: "dueDate" } }
 
     console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
 
@@ -62,13 +71,13 @@ function TicketForm() {
                 <Col lg={4}>
                     <Form.Group controlId="ticketName">
                         <Form.Label >Ticket Name</Form.Label>
-                        <Form.Control type="ticketName" placeholder="Enter Ticket Name" onChange={handleFieldChange} />
+                        <Form.Control placeholder="Enter Ticket Name" onChange={handleFieldChange} />
                     </Form.Group>
                 </Col>
                 <Col lg={8}>
                     <Form.Group controlId="ticketDescription">
                         <Form.Label >Issue Description</Form.Label>
-                        <Form.Control type="ticketDescription" as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleFieldChange} />
+                        <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleFieldChange} />
                     </Form.Group>
                 </Col>
             </Row>
@@ -115,8 +124,9 @@ function TicketForm() {
                     <Form.Group controlId="dueDate">
                         <Form.Label >Due Date</Form.Label>
                         <Form.Control
+                            defaultValue={dateDue ? dateDue.toDateString() : null}
+                            onChange={handleFieldChange}
                             readOnly
-                            defaultValue={dateDue}
                         />
                     </Form.Group>
                 </Col>
