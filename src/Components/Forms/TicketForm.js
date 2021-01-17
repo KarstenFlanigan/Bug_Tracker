@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 // eslint-disable-next-line no-unused-vars
 import { BrowserRouter as Router, Switch, Route, Link, Redirect, useHistory, useParams, withRouter } from 'react-router-dom'
 import Form from 'react-bootstrap/Form'
@@ -10,15 +10,20 @@ import { useFormFields } from '../Libs/CustomHooks.js'
 
 
 function TicketForm() {
+    //CRUD and ID sent from TableType Component
     const { crud, id } = useParams()
+    const history = useHistory()
+    //Setting dateCreated and user form control values explicitly
     const [fields, handleFieldChange] = useFormFields(
         {
-            "dateCreated": new Date().toDateString()
+            "dateCreated": new Date().toDateString(),
+            "userName": "Test User"
         }
     )
     const [dateDue, setdateDue] = useState()
     const [currentDate] = useState(new Date())
 
+    useEffect(() => { console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`) })
 
     //Handle when severity is chosen
     const handleSeverity = (event) => {
@@ -42,14 +47,16 @@ function TicketForm() {
         //Setting date based on logic
         setdateDue(dueDate)
 
-        //New event to trigger dueDate's OnChange 
+        //New event to trigger dueDate's OnChange which will add dueDate state to the useformfields custom hook
         let newEvent = new Event("input", { "bubbles": true })
         let element = document.getElementById("dueDate")
         element.dispatchEvent(newEvent)
     }
 
-
-    console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
+    const handleSubmit = () => {
+        let formJSON = JSON.stringify(fields)
+        console.log(`formJSON: ${formJSON}`)
+    }
 
     return (
         <Form>
@@ -131,15 +138,36 @@ function TicketForm() {
                     </Form.Group>
                 </Col>
                 <Col lg={4} md={6} >
-                    <Form.Group controlId="applicationName">
+                    <Form.Group controlId="userName">
                         <Form.Label >User Name</Form.Label>
                         <Form.Control readOnly defaultValue="Fill in User That Logged Ticket" />
                     </Form.Group>
                 </Col>
             </Row>
 
-            <Button type="submit">Submit</Button>
-
+            <Row>
+                <Col xs={4}>
+                    <Form.Group>
+                        <Button onClick={() => handleSubmit()}>
+                            Submit
+                        </Button>
+                    </Form.Group>
+                </Col>
+                <Col xs={4}>
+                    <Form.Group>
+                        <Button type="reset">
+                            Clear
+                        </Button>
+                    </Form.Group>
+                </Col>
+                <Col xs={4}>
+                    <Form.Group>
+                        <Button type="reset" onClick={(() => history.push("/home"))}>
+                            Cancel
+                        </Button>
+                    </Form.Group>
+                </Col>
+            </Row>
         </Form >
     )
 }
