@@ -5,6 +5,7 @@ import Form from 'react-bootstrap/Form'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import Button from 'react-bootstrap/Button'
+import Alert from 'react-bootstrap/Alert'
 //Custom hook that handles all fields typed 
 import { useFormFields } from '../Libs/CustomHooks.js'
 
@@ -22,8 +23,17 @@ function TicketForm() {
     )
     const [dateDue, setdateDue] = useState()
     const [currentDate] = useState(new Date())
+    const [developerAssigned, setdeveloperAssigned] = useState()
+    const [missingValue, setmissingValue] = useState(false)
+    const [missingValueArray, setmissingValueArray] = useState([])
 
-    useEffect(() => { console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`) })
+    //Listing all expected Form Keys to do comparision when submitted
+    const compareJSON = { "dueDate": "", "userName": "", "severity": "", "dateCreated": "", "developerAssigned": "", "ticketName": "", "ticketDescription": "", "applicationName": "" }
+
+    useEffect(() => {
+        //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
+        console.log(`MissingValueArray ${missingValueArray}`)
+    })
 
     //Handle when severity is chosen
     const handleSeverity = (event) => {
@@ -53,13 +63,68 @@ function TicketForm() {
         element.dispatchEvent(newEvent)
     }
 
+
+    const handleApplicationName = (event) => {
+
+        //Adds Severity to handlefieldchange hook
+        handleFieldChange(event)
+
+        /* 
+        ADD LOGIC FOR WHEN APP IS CHOSEN TO ASSIGN TO DESIGNATED DEVELOPER
+        */
+
+        //let appChosen = JSON.stringify(event.target.id)
+
+        setdeveloperAssigned("Test Application Name")
+
+        //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
+        let newEvent = new Event("input", { "bubbles": true })
+        let element = document.getElementById("developerAssigned")
+        element.dispatchEvent(newEvent)
+    }
+
+    //FIX THIS
+    //COMPARE ARRAY OF OBJECTS OF EXPECTED VS WHAT WAS ENTERED IN STATE
     const handleSubmit = () => {
         let formJSON = JSON.stringify(fields)
-        console.log(`formJSON: ${formJSON}`)
+        let valArray = []
+        //console.log(`formJson : ${formJSON}`)
+
+        Object.keys(compareJSON).map((value) => {
+            formJSON.includes(value) ?
+                null
+                :
+                valArray.push(value)
+        })
+
+        setmissingValueArray(valArray)
+
+
+        missingValueArray.length > 0 ?
+            setmissingValue(!missingValue)
+            :
+            console.log("No Missing Values")
     }
 
     return (
         <Form>
+            {
+                missingValue ?
+                    <Alert variant="danger">
+                        <Alert.Heading as="h4">Please Fill</Alert.Heading>
+                        {
+                            missingValueArray.map((value, index) => {
+                                return (
+                                    <p key={index}>
+                                        {value}
+                                    </p>
+                                )
+                            })
+                        }
+                    </Alert>
+                    :
+                    null
+            }
 
             <Row>
                 <Col lg={6}>
@@ -104,7 +169,7 @@ function TicketForm() {
                 <Col lg={4} md={4}>
                     <Form.Group controlId="applicationName">
                         <Form.Label >Application</Form.Label>
-                        <Form.Control as="select" onChange={handleFieldChange}>
+                        <Form.Control as="select" onChange={handleApplicationName}>
                             <option>Choose...</option>
                             <option>Test</option>
                             <option>Medium</option>
@@ -115,7 +180,7 @@ function TicketForm() {
                 <Col lg={4} md={4} >
                     <Form.Group controlId="developerAssigned">
                         <Form.Label >Developer Assigned</Form.Label>
-                        <Form.Control type="developer" readOnly defaultValue="Filled Based on App Selected" />
+                        <Form.Control readOnly defaultValue={developerAssigned} onChange={handleFieldChange} />
                     </Form.Group>
                 </Col>
             </Row>
@@ -146,23 +211,16 @@ function TicketForm() {
             </Row>
 
             <Row>
-                <Col xs={4}>
+                <Col xs={6}>
                     <Form.Group>
                         <Button onClick={() => handleSubmit()}>
                             Submit
                         </Button>
                     </Form.Group>
                 </Col>
-                <Col xs={4}>
+                <Col xs={6}>
                     <Form.Group>
-                        <Button type="reset">
-                            Clear
-                        </Button>
-                    </Form.Group>
-                </Col>
-                <Col xs={4}>
-                    <Form.Group>
-                        <Button type="reset" onClick={(() => history.push("/home"))}>
+                        <Button onClick={(() => history.push("/home"))}>
                             Cancel
                         </Button>
                     </Form.Group>

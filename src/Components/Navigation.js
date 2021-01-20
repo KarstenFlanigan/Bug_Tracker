@@ -19,7 +19,7 @@ function Navigation() {
     return (
         <Router >
             <Navbar bg="primary" expand="lg">
-                <Navbar.Brand as={Link} to="/home"><h3>Bug Tracker</h3></Navbar.Brand>
+                <Navbar.Brand as={Link} to="/home"><h1>Bug Tracker</h1></Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav defaultActiveKey="/home" as="ul">
