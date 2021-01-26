@@ -24,20 +24,74 @@ function TicketForm() {
     const [dateDue, setdateDue] = useState()
     const [currentDate] = useState(new Date())
     const [developerAssigned, setdeveloperAssigned] = useState()
-    const [missingValue, setmissingValue] = useState(false)
+    const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
 
     //Listing all expected Form Keys to do comparision when submitted
-    const compareJSON = { "dueDate": "", "userName": "", "severity": "", "dateCreated": "", "developerAssigned": "", "ticketName": "", "ticketDescription": "", "applicationName": "" }
+    const compareJSON = { "userName": "", "severity": "", "dateCreated": "", "developerAssigned": "", "ticketName": "", "ticketDescription": "" }
 
     useEffect(() => {
+        //console.log(`MissingValueArray ${missingValueArray}`)
+        //console.log(`MissingValue ${missingValue}`)
         //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
-        console.log(`MissingValueArray ${missingValueArray}`)
+
+        //New event to trigger dueDate's OnChange which will add dueDate state to the useformfields custom hook
+        let secondEvent = new Event("input", { "bubbles": true })
+        let element = document.getElementById("dueDate")
+        element.dispatchEvent(secondEvent)
+
+        //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
+        let newEvent = new Event("input", { "bubbles": true })
+        let element2 = document.getElementById("developerAssigned")
+        element2.dispatchEvent(newEvent)
+
+        /*
+        CHANGE API AFTER BUILT
+        */
+        //Calling API best on CRUD type, attached to handleSubmit
+        if (missingValueArray == 0 && missingValue === false) {
+
+            console.log("Calling API")
+
+            fetch("/test/api", {
+                method: "POST",
+                body: JSON.stringify(fields),
+                headers: { "Content-Type": "application/json" },
+            })
+                .then((res => res.json()))
+                .then(data => {
+                    console.log("API Success: " + data)
+                })
+                .catch((error => {
+                    console.log("API Error: " + error)
+                }))
+        }
     })
+
+    const showAlert = () => {
+        return (
+            <Alert variant="danger" show={missingValue && missingValueArray.length > 0 ? true : false}>
+                <Alert.Heading><h4>Please Fill</h4></Alert.Heading>
+                {
+                    missingValueArray.map((value, index) => {
+                        return (
+                            <p key={index}>
+                                {value}
+                            </p>
+                        )
+                    })
+                }
+            </Alert>
+        )
+    }
+
+    //Handle Change which calls the custom hook
+    const handleChange = (event) => {
+        handleFieldChange(event)
+    }
 
     //Handle when severity is chosen
     const handleSeverity = (event) => {
-
         let High = `"High"`
         let Medium = `"Medium"`
         let Low = `"Low"`
@@ -51,45 +105,31 @@ function TicketForm() {
         } else if (Severity == Low) {
             dueDate.setDate(dueDate.getDate() + 10)
         }
-        //Adds Severity to handlefieldchange hook
-        handleFieldChange(event)
 
         //Setting date based on logic
         setdateDue(dueDate)
 
-        //New event to trigger dueDate's OnChange which will add dueDate state to the useformfields custom hook
-        let newEvent = new Event("input", { "bubbles": true })
-        let element = document.getElementById("dueDate")
-        element.dispatchEvent(newEvent)
+        //Adds Severity to handlefieldchange hook
+        handleChange(event)
     }
 
 
     const handleApplicationName = (event) => {
-
-        //Adds Severity to handlefieldchange hook
-        handleFieldChange(event)
-
         /* 
         ADD LOGIC FOR WHEN APP IS CHOSEN TO ASSIGN TO DESIGNATED DEVELOPER
         */
-
-        //let appChosen = JSON.stringify(event.target.id)
-
         setdeveloperAssigned("Test Application Name")
-
-        //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
-        let newEvent = new Event("input", { "bubbles": true })
-        let element = document.getElementById("developerAssigned")
-        element.dispatchEvent(newEvent)
+        //Adds applicationName to handlefieldchange hook
+        handleChange(event)
     }
 
-    //FIX THIS
     //COMPARE ARRAY OF OBJECTS OF EXPECTED VS WHAT WAS ENTERED IN STATE
     const handleSubmit = () => {
         let formJSON = JSON.stringify(fields)
         let valArray = []
-        //console.log(`formJson : ${formJSON}`)
 
+        //Compare to see if keys(fields) exist
+        //if they don't exist push missing key(field) to array which updates state array
         Object.keys(compareJSON).map((value) => {
             formJSON.includes(value) ?
                 null
@@ -99,33 +139,22 @@ function TicketForm() {
 
         setmissingValueArray(valArray)
 
+        //if there are any missing fields, change the missing value state to trigger alert
+        //if no missing fields set missing state to false and send alert
+        if (valArray.length > 0) {
+            setmissingValue(true)
+        } else {
+            setmissingValue(false)
+        }
 
-        missingValueArray.length > 0 ?
-            setmissingValue(!missingValue)
-            :
-            console.log("No Missing Values")
+        //console.log(`Submit Fields: ${JSON.stringify(fields)}`)
+        //console.log(`Missing Value Array: ${JSON.stringify(missingValueArray)}`)
+        console.log(`Missing Value ${missingValue}`)
     }
 
     return (
         <Form>
-            {
-                missingValue ?
-                    <Alert variant="danger">
-                        <Alert.Heading as="h4">Please Fill</Alert.Heading>
-                        {
-                            missingValueArray.map((value, index) => {
-                                return (
-                                    <p key={index}>
-                                        {value}
-                                    </p>
-                                )
-                            })
-                        }
-                    </Alert>
-                    :
-                    null
-            }
-
+            {showAlert()}
             <Row>
                 <Col lg={6}>
                     <Form.Group controlId="ticketNumber">
@@ -143,13 +172,13 @@ function TicketForm() {
                 <Col lg={4}>
                     <Form.Group controlId="ticketName">
                         <Form.Label >Ticket Name</Form.Label>
-                        <Form.Control placeholder="Enter Ticket Name" onChange={handleFieldChange} />
+                        <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} />
                     </Form.Group>
                 </Col>
                 <Col lg={8}>
                     <Form.Group controlId="ticketDescription">
                         <Form.Label >Issue Description</Form.Label>
-                        <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleFieldChange} />
+                        <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleChange} />
                     </Form.Group>
                 </Col>
             </Row>
@@ -171,16 +200,16 @@ function TicketForm() {
                         <Form.Label >Application</Form.Label>
                         <Form.Control as="select" onChange={handleApplicationName}>
                             <option>Choose...</option>
-                            <option>Test</option>
-                            <option>Medium</option>
-                            <option>High</option>
+                            <option>Bug Tracker</option>
+                            <option>QA App</option>
+                            <option>Sputnik</option>
                         </Form.Control>
                     </Form.Group>
                 </Col>
                 <Col lg={4} md={4} >
                     <Form.Group controlId="developerAssigned">
                         <Form.Label >Developer Assigned</Form.Label>
-                        <Form.Control readOnly defaultValue={developerAssigned} onChange={handleFieldChange} />
+                        <Form.Control defaultValue={developerAssigned ? developerAssigned : null} onChange={handleChange} readOnly />
                     </Form.Group>
                 </Col>
             </Row>
@@ -197,7 +226,7 @@ function TicketForm() {
                         <Form.Label >Due Date</Form.Label>
                         <Form.Control
                             defaultValue={dateDue ? dateDue.toDateString() : null}
-                            onChange={handleFieldChange}
+                            onChange={handleChange}
                             readOnly
                         />
                     </Form.Group>
@@ -205,7 +234,7 @@ function TicketForm() {
                 <Col lg={4} md={6} >
                     <Form.Group controlId="userName">
                         <Form.Label >User Name</Form.Label>
-                        <Form.Control readOnly defaultValue="Fill in User That Logged Ticket" />
+                        <Form.Control readOnly defaultValue="Fill in User That Logged Ticket" onChange={handleChange} />
                     </Form.Group>
                 </Col>
             </Row>
@@ -226,6 +255,7 @@ function TicketForm() {
                     </Form.Group>
                 </Col>
             </Row>
+
         </Form >
     )
 }
