@@ -17,8 +17,8 @@ function TicketForm() {
     //Setting dateCreated and user form control values explicitly
     const [fields, handleFieldChange] = useFormFields(
         {
-            "dateCreated": new Date().toDateString(),
-            "userName": "Test User"
+            "userName": "Test User",
+            "dateCreated": "delete after api"
         }
     )
     const [dateDue, setdateDue] = useState()
@@ -49,7 +49,7 @@ function TicketForm() {
         CHANGE API AFTER BUILT
         */
         //Calling API best on CRUD type, attached to handleSubmit
-        if (missingValueArray == 0 && missingValue === false) {
+        if (missingValueArray == 0 && missingValue === false && crud == "update") {
 
             console.log("Calling API")
 
@@ -113,6 +113,13 @@ function TicketForm() {
         handleChange(event)
     }
 
+    const dueDateValue = () => {
+        if (crud == "update") {
+            fields["dueDate"]
+        } else if (dateDue) {
+            dateDue.toDateString()
+        }
+    }
 
     const handleApplicationName = (event) => {
         /* 
@@ -158,7 +165,7 @@ function TicketForm() {
             <Row>
                 <Col lg={6}>
                     <Form.Group controlId="ticketNumber">
-                        <Form.Label >Ticket #: {id}</Form.Label>
+                        <Form.Label >Ticket #: {crud == "update" ? id : null}</Form.Label>
                     </Form.Group>
                 </Col>
                 <Col lg={6}>
@@ -172,13 +179,13 @@ function TicketForm() {
                 <Col lg={4}>
                     <Form.Group controlId="ticketName">
                         <Form.Label >Ticket Name</Form.Label>
-                        <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} />
+                        <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketName"] : null} />
                     </Form.Group>
                 </Col>
                 <Col lg={8}>
                     <Form.Group controlId="ticketDescription">
                         <Form.Label >Issue Description</Form.Label>
-                        <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleChange} />
+                        <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketDescription"] : null} />
                     </Form.Group>
                 </Col>
             </Row>
@@ -187,7 +194,7 @@ function TicketForm() {
                 <Col lg={4} md={4}>
                     <Form.Group controlId="severity">
                         <Form.Label >Severity</Form.Label>
-                        <Form.Control as="select" onChange={handleSeverity}>
+                        <Form.Control as="select" onChange={handleSeverity} defaultValue={crud == "update" ? fields["severity"] : null} readOnly={crud == "update" ? true : false}>
                             <option>Choose...</option>
                             <option>Low</option>
                             <option>Medium</option>
@@ -198,7 +205,7 @@ function TicketForm() {
                 <Col lg={4} md={4}>
                     <Form.Group controlId="applicationName">
                         <Form.Label >Application</Form.Label>
-                        <Form.Control as="select" onChange={handleApplicationName}>
+                        <Form.Control as="select" onChange={handleApplicationName} readOnly={crud == "update" ? true : false}>
                             <option>Choose...</option>
                             <option>Bug Tracker</option>
                             <option>QA App</option>
@@ -218,14 +225,14 @@ function TicketForm() {
                 <Col lg={4} md={6}>
                     <Form.Group controlId="dateCreated">
                         <Form.Label >Date Created</Form.Label>
-                        <Form.Control readOnly defaultValue={currentDate.toDateString()} />
+                        <Form.Control readOnly defaultValue={crud == "update" ? fields["dateCreated"] : currentDate.toDateString()} />
                     </Form.Group>
                 </Col>
                 <Col lg={4} md={6} >
                     <Form.Group controlId="dueDate">
                         <Form.Label >Due Date</Form.Label>
                         <Form.Control
-                            defaultValue={dateDue ? dateDue.toDateString() : null}
+                            defaultValue={dueDateValue()}
                             onChange={handleChange}
                             readOnly
                         />
