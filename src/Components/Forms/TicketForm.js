@@ -6,6 +6,7 @@ import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import Button from 'react-bootstrap/Button'
 import Alert from 'react-bootstrap/Alert'
+import Spinner from 'react-bootstrap/Spinner'
 //Custom hook that handles all fields typed 
 import { useFormFields } from '../Libs/CustomHooks.js'
 
@@ -21,11 +22,17 @@ function TicketForm() {
             "dateCreated": "delete after api"
         }
     )
-    const [dateDue, setdateDue] = useState()
+
     const [currentDate] = useState(new Date())
     const [developerAssigned, setdeveloperAssigned] = useState()
     const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
+    const [getAPIStatus, setgetAPIStatus] = useState()
+    const [getTicket, setgetTicket] = useState()
+    const [getDeveloper, setgetDeveloper] = useState()
+    const [getApplication, setgetApplication] = useState()
+    const [apiLoading, setapiLoading] = useState(true)
+
 
     //Listing all expected Form Keys to do comparision when submitted
     const compareJSON = { "userName": "", "severity": "", "dateCreated": "", "developerAssigned": "", "ticketName": "", "ticketDescription": "" }
@@ -33,18 +40,14 @@ function TicketForm() {
     useEffect(() => {
         //console.log(`MissingValueArray ${missingValueArray}`)
         //console.log(`MissingValue ${missingValue}`)
-        //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
+        console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
 
-        //New event to trigger dueDate's OnChange which will add dueDate state to the useformfields custom hook
-        let secondEvent = new Event("input", { "bubbles": true })
-        let element = document.getElementById("dueDate")
-        element.dispatchEvent(secondEvent)
-
-        //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
-        let newEvent = new Event("input", { "bubbles": true })
-        let element2 = document.getElementById("developerAssigned")
-        element2.dispatchEvent(newEvent)
-
+        if (!apiLoading) {
+            //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
+            let newEvent = new Event("input", { "bubbles": true })
+            let element2 = document.getElementById("developerAssigned")
+            element2.dispatchEvent(newEvent)
+        }
         /*
         CHANGE API AFTER BUILT
         */
@@ -53,20 +56,66 @@ function TicketForm() {
 
             console.log("Calling API")
 
-            fetch("/test/api", {
-                method: "POST",
-                body: JSON.stringify(fields),
-                headers: { "Content-Type": "application/json" },
-            })
-                .then((res => res.json()))
-                .then(data => {
-                    console.log("API Success: " + data)
-                })
-                .catch((error => {
-                    console.log("API Error: " + error)
-                }))
+
         }
     })
+
+    //Call all Get APIs
+    useEffect(() => {
+        fetch(`http://localhost:55306/api/tickets/${id}`)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    setgetAPIStatus(result)
+                    setgetTicket(JSON.stringify(result))
+                    console.log(`Success: ${JSON.stringify(result)} ${getTicket}`)
+                    setapiLoading(false)
+                },
+                (error) => {
+                    setgetAPIStatus(error)
+                    console.log(`Failed: ${getAPIStatus}`)
+                }
+            )
+
+        fetch(`http://localhost:55306/api/developers`)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    setgetAPIStatus(result)
+                    setgetDeveloper(JSON.stringify(result))
+                    console.log(`Success: ${JSON.stringify(result)} ${getDeveloper}`)
+                    setapiLoading(false)
+                },
+                (error) => {
+                    setgetAPIStatus(error)
+                    console.log(`Failed: ${getAPIStatus}`)
+                }
+            )
+
+        fetch(`http://localhost:55306/api/applications`)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    setgetAPIStatus(result)
+                    setgetApplication(JSON.stringify(result))
+                    console.log(`Success: ${JSON.stringify(result)} ${getApplication}`)
+                    setapiLoading(false)
+                },
+                (error) => {
+                    setgetAPIStatus(error)
+                    console.log(`Failed: ${getAPIStatus}`)
+                }
+            )
+    }, [])
+
+    const showSpinner = () => {
+        console.log(apiLoading)
+        return (
+            <Spinner animation="border" role="status" size="xl">
+                <span className="sr-only">Loading...</span>
+            </Spinner>
+        )
+    }
 
     const showAlert = () => {
         return (
@@ -104,21 +153,15 @@ function TicketForm() {
             dueDate.setDate(dueDate.getDate() + 5)
         } else if (Severity == Low) {
             dueDate.setDate(dueDate.getDate() + 10)
+        } else {
+            dueDate = null
         }
 
         //Setting date based on logic
-        setdateDue(dueDate)
+        fields.dueDate = dueDate;
 
         //Adds Severity to handlefieldchange hook
         handleChange(event)
-    }
-
-    const dueDateValue = () => {
-        if (crud == "update") {
-            fields["dueDate"]
-        } else if (dateDue) {
-            dateDue.toDateString()
-        }
     }
 
     const handleApplicationName = (event) => {
@@ -160,110 +203,117 @@ function TicketForm() {
     }
 
     return (
-        <Form>
-            {showAlert()}
-            <Row>
-                <Col lg={6}>
-                    <Form.Group controlId="ticketNumber">
-                        <Form.Label >Ticket #: {crud == "update" ? id : null}</Form.Label>
-                    </Form.Group>
-                </Col>
-                <Col lg={6}>
-                    <Form.Group controlId="crudType">
-                        <Form.Label >CRUD Type: {crud}</Form.Label>
-                    </Form.Group>
-                </Col>
-            </Row>
+        <div>
+            {
+                apiLoading ?
+                    showSpinner()
+                    :
+                    < Form >
+                        {showAlert()}
+                        < Row >
+                            <Col lg={6}>
+                                <Form.Group controlId="ticketNumber">
+                                    <Form.Label >Ticket #: {crud == "update" ? id : null}</Form.Label>
+                                </Form.Group>
+                            </Col>
+                            <Col lg={6}>
+                                <Form.Group controlId="crudType">
+                                    <Form.Label >CRUD Type: {crud}</Form.Label>
+                                </Form.Group>
+                            </Col>
+                        </Row >
 
-            <Row>
-                <Col lg={4}>
-                    <Form.Group controlId="ticketName">
-                        <Form.Label >Ticket Name</Form.Label>
-                        <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketName"] : null} />
-                    </Form.Group>
-                </Col>
-                <Col lg={8}>
-                    <Form.Group controlId="ticketDescription">
-                        <Form.Label >Issue Description</Form.Label>
-                        <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketDescription"] : null} />
-                    </Form.Group>
-                </Col>
-            </Row>
+                        <Row>
+                            <Col lg={4}>
+                                <Form.Group controlId="ticketName">
+                                    <Form.Label >Ticket Name</Form.Label>
+                                    <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketName"] : null} />
+                                </Form.Group>
+                            </Col>
+                            <Col lg={8}>
+                                <Form.Group controlId="ticketDescription">
+                                    <Form.Label >Issue Description</Form.Label>
+                                    <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketDescription"] : null} />
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-            <Row>
-                <Col lg={4} md={4}>
-                    <Form.Group controlId="severity">
-                        <Form.Label >Severity</Form.Label>
-                        <Form.Control as="select" onChange={handleSeverity} defaultValue={crud == "update" ? fields["severity"] : null} readOnly={crud == "update" ? true : false}>
-                            <option>Choose...</option>
-                            <option>Low</option>
-                            <option>Medium</option>
-                            <option>High</option>
-                        </Form.Control>
-                    </Form.Group>
-                </Col>
-                <Col lg={4} md={4}>
-                    <Form.Group controlId="applicationName">
-                        <Form.Label >Application</Form.Label>
-                        <Form.Control as="select" onChange={handleApplicationName} readOnly={crud == "update" ? true : false}>
-                            <option>Choose...</option>
-                            <option>Bug Tracker</option>
-                            <option>QA App</option>
-                            <option>Sputnik</option>
-                        </Form.Control>
-                    </Form.Group>
-                </Col>
-                <Col lg={4} md={4} >
-                    <Form.Group controlId="developerAssigned">
-                        <Form.Label >Developer Assigned</Form.Label>
-                        <Form.Control defaultValue={developerAssigned ? developerAssigned : null} onChange={handleChange} readOnly />
-                    </Form.Group>
-                </Col>
-            </Row>
+                        <Row>
+                            <Col lg={4} md={4}>
+                                <Form.Group controlId="severity">
+                                    <Form.Label >Severity</Form.Label>
+                                    <Form.Control as="select" onChange={handleSeverity} defaultValue={crud == "update" ? fields["severity"] : null} readOnly={crud == "update" ? true : false}>
+                                        <option>Choose...</option>
+                                        <option>Low</option>
+                                        <option>Medium</option>
+                                        <option>High</option>
+                                    </Form.Control>
+                                </Form.Group>
+                            </Col>
+                            <Col lg={4} md={4}>
+                                <Form.Group controlId="applicationName">
+                                    <Form.Label >Application</Form.Label>
+                                    <Form.Control as="select" onChange={handleApplicationName} readOnly={crud == "update" ? true : false}>
+                                        <option>Choose...</option>
+                                        <option>Bug Tracker</option>
+                                        <option>QA App</option>
+                                        <option>Sputnik</option>
+                                    </Form.Control>
+                                </Form.Group>
+                            </Col>
+                            <Col lg={4} md={4} >
+                                <Form.Group controlId="developerAssigned">
+                                    <Form.Label >Developer Assigned</Form.Label>
+                                    <Form.Control defaultValue={developerAssigned ? developerAssigned : null} onChange={handleChange} readOnly />
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-            <Row>
-                <Col lg={4} md={6}>
-                    <Form.Group controlId="dateCreated">
-                        <Form.Label >Date Created</Form.Label>
-                        <Form.Control readOnly defaultValue={crud == "update" ? fields["dateCreated"] : currentDate.toDateString()} />
-                    </Form.Group>
-                </Col>
-                <Col lg={4} md={6} >
-                    <Form.Group controlId="dueDate">
-                        <Form.Label >Due Date</Form.Label>
-                        <Form.Control
-                            defaultValue={dueDateValue()}
-                            onChange={handleChange}
-                            readOnly
-                        />
-                    </Form.Group>
-                </Col>
-                <Col lg={4} md={6} >
-                    <Form.Group controlId="userName">
-                        <Form.Label >User Name</Form.Label>
-                        <Form.Control readOnly defaultValue="Fill in User That Logged Ticket" onChange={handleChange} />
-                    </Form.Group>
-                </Col>
-            </Row>
+                        <Row>
+                            <Col lg={4} md={6}>
+                                <Form.Group controlId="dateCreated">
+                                    <Form.Label >Date Created</Form.Label>
+                                    <Form.Control readOnly defaultValue={crud == "update" ? fields["dateCreated"] : currentDate.toDateString()} />
+                                </Form.Group>
+                            </Col>
+                            <Col lg={4} md={6} >
+                                <Form.Group controlId="dueDate">
+                                    <Form.Label >Due Date</Form.Label>
+                                    <Form.Control
+                                        defaultValue={fields["dueDate"] ? fields["dueDate"] : null}
+                                        onChange={handleChange}
+                                        readOnly
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col lg={4} md={6} >
+                                <Form.Group controlId="userName">
+                                    <Form.Label >User Name</Form.Label>
+                                    <Form.Control readOnly defaultValue="Fill in User That Logged Ticket" onChange={handleChange} />
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-            <Row>
-                <Col xs={6}>
-                    <Form.Group>
-                        <Button onClick={() => handleSubmit()}>
-                            Submit
+                        <Row>
+                            <Col xs={6}>
+                                <Form.Group>
+                                    <Button onClick={() => handleSubmit()}>
+                                        Submit
                         </Button>
-                    </Form.Group>
-                </Col>
-                <Col xs={6}>
-                    <Form.Group>
-                        <Button onClick={(() => history.push("/home"))}>
-                            Cancel
+                                </Form.Group>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Group>
+                                    <Button onClick={(() => history.push("/home"))}>
+                                        Cancel
                         </Button>
-                    </Form.Group>
-                </Col>
-            </Row>
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-        </Form >
+                    </Form >
+            }
+        </div>
     )
 }
 
