@@ -28,11 +28,11 @@ function TicketForm() {
     const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
     const [getAPIStatus, setgetAPIStatus] = useState()
-    const [getTicket, setgetTicket] = useState()
-    const [getDeveloper, setgetDeveloper] = useState()
-    const [getApplication, setgetApplication] = useState()
     const [apiLoading, setapiLoading] = useState(true)
-
+    let developerArray = []
+    let applicationArray = []
+    let ticketArray = []
+    const [ticketName, setticketName] = useState()
 
     //Listing all expected Form Keys to do comparision when submitted
     const compareJSON = { "userName": "", "severity": "", "dateCreated": "", "developerAssigned": "", "ticketName": "", "ticketDescription": "" }
@@ -40,7 +40,7 @@ function TicketForm() {
     useEffect(() => {
         //console.log(`MissingValueArray ${missingValueArray}`)
         //console.log(`MissingValue ${missingValue}`)
-        console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
+        //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
 
         if (!apiLoading) {
             //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
@@ -67,9 +67,10 @@ function TicketForm() {
             .then(
                 (result) => {
                     setgetAPIStatus(result)
-                    setgetTicket(JSON.stringify(result))
-                    console.log(`Success: ${JSON.stringify(result)} ${getTicket}`)
+                    ticketArray = result
                     setapiLoading(false)
+                    console.log(ticketArray.map(x => x["ticketName"])[0])
+                    setticketName(ticketArray.map(x => x["ticketName"])[0])
                 },
                 (error) => {
                     setgetAPIStatus(error)
@@ -82,8 +83,8 @@ function TicketForm() {
             .then(
                 (result) => {
                     setgetAPIStatus(result)
-                    setgetDeveloper(JSON.stringify(result))
-                    console.log(`Success: ${JSON.stringify(result)} ${getDeveloper}`)
+                    developerArray = result
+                    console.log(developerArray.map(x => x))
                     setapiLoading(false)
                 },
                 (error) => {
@@ -97,8 +98,8 @@ function TicketForm() {
             .then(
                 (result) => {
                     setgetAPIStatus(result)
-                    setgetApplication(JSON.stringify(result))
-                    console.log(`Success: ${JSON.stringify(result)} ${getApplication}`)
+                    applicationArray = result
+                    console.log(applicationArray.map(x => x))
                     setapiLoading(false)
                 },
                 (error) => {
@@ -109,7 +110,6 @@ function TicketForm() {
     }, [])
 
     const showSpinner = () => {
-        console.log(apiLoading)
         return (
             <Spinner animation="border" role="status" size="xl">
                 <span className="sr-only">Loading...</span>
@@ -227,7 +227,7 @@ function TicketForm() {
                             <Col lg={4}>
                                 <Form.Group controlId="ticketName">
                                     <Form.Label >Ticket Name</Form.Label>
-                                    <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketName"] : null} />
+                                    <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} defaultValue={!apiLoading && crud == "update" ? ticketName : null} />
                                 </Form.Group>
                             </Col>
                             <Col lg={8}>
