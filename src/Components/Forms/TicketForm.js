@@ -18,21 +18,24 @@ function TicketForm() {
     //Setting dateCreated and user form control values explicitly
     const [fields, handleFieldChange] = useFormFields(
         {
-            "userName": "Test User",
-            "dateCreated": "delete after api"
+            "userName": "",
+            "dateCreated": "",
+            "developerAssigned": "",
+            "ticketName": "",
+            "ticketDescription": "",
+            "severity": "",
+            "dueDate": ""
         }
     )
 
     const [currentDate] = useState(new Date())
-    const [developerAssigned, setdeveloperAssigned] = useState()
     const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
     const [getAPIStatus, setgetAPIStatus] = useState()
     const [apiLoading, setapiLoading] = useState(true)
     let developerArray = []
     let applicationArray = []
-    let ticketArray = []
-    const [ticketName, setticketName] = useState()
+    const [developerName, setdeveloperName] = useState()
 
     //Listing all expected Form Keys to do comparision when submitted
     const compareJSON = { "userName": "", "severity": "", "dateCreated": "", "developerAssigned": "", "ticketName": "", "ticketDescription": "" }
@@ -40,7 +43,7 @@ function TicketForm() {
     useEffect(() => {
         //console.log(`MissingValueArray ${missingValueArray}`)
         //console.log(`MissingValue ${missingValue}`)
-        //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
+        console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
 
         if (!apiLoading) {
             //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
@@ -67,10 +70,17 @@ function TicketForm() {
             .then(
                 (result) => {
                     setgetAPIStatus(result)
-                    ticketArray = result
                     setapiLoading(false)
-                    console.log(ticketArray.map(x => x["ticketName"])[0])
-                    setticketName(ticketArray.map(x => x["ticketName"])[0])
+                    fields.ticketName = result[0].ticketName
+                    fields.ticketDescription = result[0].ticketDescription
+                    fields.severity = result[0].severity
+                    fields.userName = result[0].userName
+                    fields.dueDate = result[0].dueDate
+                    fields.dateCreated = result[0].dateCreated
+                    let developerFirstName = result[0].developer.developerFirstName
+                    let developerLastName = result[0].developer.developerLastName
+                    let devName = `${developerFirstName} ${developerLastName}`
+                    setdeveloperName(devName)
                 },
                 (error) => {
                     setgetAPIStatus(error)
@@ -103,6 +113,7 @@ function TicketForm() {
                     setapiLoading(false)
                 },
                 (error) => {
+                    setapiLoading(false)
                     setgetAPIStatus(error)
                     console.log(`Failed: ${getAPIStatus}`)
                 }
@@ -168,7 +179,7 @@ function TicketForm() {
         /* 
         ADD LOGIC FOR WHEN APP IS CHOSEN TO ASSIGN TO DESIGNATED DEVELOPER
         */
-        setdeveloperAssigned("Test Application Name")
+
         //Adds applicationName to handlefieldchange hook
         handleChange(event)
     }
@@ -227,13 +238,13 @@ function TicketForm() {
                             <Col lg={4}>
                                 <Form.Group controlId="ticketName">
                                     <Form.Label >Ticket Name</Form.Label>
-                                    <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} defaultValue={!apiLoading && crud == "update" ? ticketName : null} />
+                                    <Form.Control placeholder="Enter Ticket Name" onChange={handleChange} defaultValue={!apiLoading && crud == "update" ? null : null} />
                                 </Form.Group>
                             </Col>
                             <Col lg={8}>
                                 <Form.Group controlId="ticketDescription">
                                     <Form.Label >Issue Description</Form.Label>
-                                    <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleChange} defaultValue={crud == "update" ? fields["ticketDescription"] : null} />
+                                    <Form.Control as="textarea" rows={2} placeholder="Enter Ticket Description" onChange={handleChange} defaultValue={crud == "update" && !apiLoading ? fields["ticketDescription"] : null} />
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -242,7 +253,7 @@ function TicketForm() {
                             <Col lg={4} md={4}>
                                 <Form.Group controlId="severity">
                                     <Form.Label >Severity</Form.Label>
-                                    <Form.Control as="select" onChange={handleSeverity} defaultValue={crud == "update" ? fields["severity"] : null} readOnly={crud == "update" ? true : false}>
+                                    <Form.Control as="select" onChange={handleSeverity} defaultValue={crud == "update" && !apiLoading ? fields["severity"] : null} readOnly={crud == "update" ? true : false}>
                                         <option>Choose...</option>
                                         <option>Low</option>
                                         <option>Medium</option>
@@ -264,7 +275,7 @@ function TicketForm() {
                             <Col lg={4} md={4} >
                                 <Form.Group controlId="developerAssigned">
                                     <Form.Label >Developer Assigned</Form.Label>
-                                    <Form.Control defaultValue={developerAssigned ? developerAssigned : null} onChange={handleChange} readOnly />
+                                    <Form.Control defaultValue={!apiLoading && crud == "update" ? developerName : null} onChange={handleChange} readOnly />
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -313,7 +324,7 @@ function TicketForm() {
 
                     </Form >
             }
-        </div>
+        </div >
     )
 }
 

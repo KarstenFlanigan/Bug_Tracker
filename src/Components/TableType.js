@@ -19,11 +19,9 @@ function TableType() {
 
   //Use if then statement based on tabletype prop to determine what API to call to create table
   const tableData = [
-    { id: 4, name: 'fourth ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "closed" },
     { id: 1, name: 'first ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "closed" },
     { id: 2, name: 'second ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "closed" },
-    { id: 3, name: 'third ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "open" },
-    { id: 5, name: 'first ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "open" }
+    { id: 3, name: 'third ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "open" }
   ]
 
   //For Table Headers, define what headers we want to see
