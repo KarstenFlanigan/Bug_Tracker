@@ -80,7 +80,7 @@ const FilterButton = (props) => {
   const [filterColumn, setfilterColumn] = useState()
   const [filterValue, setfilterValue] = useState()
   const [updatedTableData, setUpdatedTableData] = useState(tableData)
-
+  const history2 = useHistory()
 
   const handleClick = (filterColumnClicked) => {
     setfilterColumnStatus(!filterColumnStatus)
@@ -150,7 +150,7 @@ const FilterButton = (props) => {
               <Dropdown>
                 <Dropdown.Toggle variant="success">
                   Choose Column Filter
-            </Dropdown.Toggle>
+              </Dropdown.Toggle>
                 <Dropdown.Menu>
                   {buildFilterColumnDropdown()}
                 </Dropdown.Menu>
@@ -167,6 +167,11 @@ const FilterButton = (props) => {
                 :
                 <Button variant="success" size="md" onClick={() => handleClick3()}>Clear {filterColumn} Filter</Button>
           }
+        </ListGroup.Item>
+        <ListGroup.Item>
+          <Button variant="success" onClick={() => history2.push(`${tableType}/create`)} >
+            Create Ticket
+          </Button>
         </ListGroup.Item>
       </ListGroup>
       <TableHeader tableData={updatedTableData} filterCriteria={filterCriteria} headers={headers} trKey={trKey} tableType={tableType} />

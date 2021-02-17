@@ -40,6 +40,9 @@ function Navigation() {
                 <Route path="/ticket/:crud/:id">
                     <TicketForm />
                 </Route>
+                <Route path="/ticket/:crud">
+                    <TicketForm />
+                </Route>
                 <Route path="/home">
                     <Home />
                 </Route>

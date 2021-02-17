@@ -18,6 +18,7 @@ function TicketForm() {
     //Setting dateCreated and user form control values explicitly
     const [fields, handleFieldChange] = useFormFields(
         {
+            "ticketStatus": "",
             "userName": "",
             "dateCreated": "",
             "developerAssigned": "",
@@ -28,6 +29,8 @@ function TicketForm() {
         }
     )
 
+    let severityObj = { "Choose...": "", "High": "", "Medium": "", "Low": "" }
+
     const [currentDate] = useState(new Date())
     const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
@@ -36,52 +39,51 @@ function TicketForm() {
     const [developerArray, setdeveloperArray] = useState()
     const [applicationArray, setapplicationArray] = useState()
     const [ticketName, setticketName] = useState(fields["ticketName"])
-
-    //Listing all expected Form Keys to do comparision when submitted
-    const compareJSON = { "userName": "", "severity": "", "dateCreated": "", "developerAssigned": "", "ticketName": "", "ticketDescription": "" }
+    const [dateCreated, setdateCreated] = useState(fields["dateCreated"])
+    const [dueDate, setdueDate] = useState(fields["dueDate"])
+    const [userName, setuserName] = useState(fields["userName"])
 
     useEffect(() => {
         //console.log(`MissingValueArray ${missingValueArray}`)
         //console.log(`MissingValue ${missingValue}`)
-        console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
-
-        /*
-        if (!apiLoading) {
-            //New event to trigger applicationName OnChange which will add applicationName state to the useformfields custom hook
-            let newEvent = new Event("input", { "bubbles": true })
-            let element2 = document.getElementById("developerAssigned")
-            element2.dispatchEvent(newEvent)
-        }
-        */
+        //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
     })
 
     //Call all Get APIs
     useEffect(() => {
-        fetch(`http://localhost:55306/api/tickets/${id}`)
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    setgetAPIStatus(result)
-                    setapiLoading(false)
-                    fields.ticketName = result[0].ticketName
-                    fields.ticketDescription = result[0].ticketDescription
-                    fields.severity = result[0].severity
-                    fields.userName = result[0].userName
-                    let dueDateFormat = new Date(result[0].dateDue)
-                    fields.dueDate = dueDateFormat.toDateString()
-                    let dateCreatedFormat = new Date(result[0].dateCreated)
-                    fields.dateCreated = dateCreatedFormat.toDateString()
-                    fields.developerAssigned = result[0].developer.developerID
-                    fields.applicationName = result[0].application.applicationID
-                    //Doing this so there is a re-render and the fields constant values are displayed in form
-                    setticketName(fields.ticketName)
-                },
-                (error) => {
-                    setgetAPIStatus(error)
-                    console.log(`Failed: ${getAPIStatus}`)
-                }
-            )
+        if (crud == "update") {
+            fetch(`http://localhost:55306/api/tickets/${id}`)
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        setgetAPIStatus(result)
+                        setapiLoading(false)
+                        fields.ticketName = result[0].ticketName
+                        fields.ticketDescription = result[0].ticketDescription
+                        fields.severity = result[0].severity
+                        fields.userName = result[0].userName
+                        let dueDateFormat = new Date(result[0].dateDue)
+                        fields.dueDate = dueDateFormat
+                        let dateCreatedFormat = new Date(result[0].dateCreated)
+                        fields.dateCreated = dateCreatedFormat
+                        fields.developerAssigned = result[0].developer.developerID
+                        fields.applicationName = result[0].application.applicationID
+                        fields.ticketStatus = result[0].status
+                        setuserName(fields.userName)
 
+                        //Doing this so there is a re-render and the fields constant values are displayed in form
+                        setticketName(fields.ticketName)
+                        setdateCreated(fields.currentDate)
+                        setdueDate(fields.dueDate)
+
+                        console.log(result)
+                    },
+                    (error) => {
+                        setgetAPIStatus(error)
+                        console.log(`Failed: ${getAPIStatus}`)
+                    }
+                )
+        }
         fetch(`http://localhost:55306/api/developers`)
             .then(res => res.json())
             .then(
@@ -110,6 +112,11 @@ function TicketForm() {
                     console.log(`Failed: ${getAPIStatus}`)
                 }
             )
+
+        if (!crud == "update") {
+            fields.userName = "Test User"
+            setuserName(fields.userName)
+        }
     }, [])
 
     const showSpinner = () => {
@@ -156,59 +163,70 @@ function TicketForm() {
         }
 
         //Setting date based on logic
-        fields.dueDate = dueDate.toDateString();
+        fields.dueDate = dueDate
+
+        setdueDate(fields.dueDate)
 
         //Adds Severity to handlefieldchange hook
         handleFieldChange(event)
     }
-
+    /*
+    CHANGE MISSINGV VALUE CHECK FROM CHECKING KEY TO CHECKING VALUE FOR ""
+    */
     //COMPARE ARRAY OF OBJECTS OF EXPECTED VS WHAT WAS ENTERED IN STATE
     const handleSubmit = () => {
-        let formJSON = JSON.stringify(fields)
-        let valArray = []
+        let missingValArray = []
 
         //Compare to see if keys(fields) exist
         //if they don't exist push missing key(field) to array which updates state array
-        Object.keys(compareJSON).map((value) => {
-            formJSON.includes(value) ?
-                null
-                :
-                valArray.push(value)
-        })
-
-        setmissingValueArray(valArray)
+        for (const prop in fields) {
+            if (fields[prop] == "" || null) {
+                missingValArray.push(prop)
+            }
+        }
+        setmissingValueArray(missingValArray)
 
         //if there are any missing fields, change the missing value state to trigger alert
         //if no missing fields set missing state to false and send alert
-        if (valArray.length > 0) {
+        if (missingValArray.length > 0) {
             setmissingValue(true)
         } else {
             setmissingValue(false)
         }
 
-        //console.log(`Submit Fields: ${JSON.stringify(fields)}`)
-        //console.log(`Missing Value Array: ${JSON.stringify(missingValueArray)}`)
+        console.log(`Submit Fields: ${JSON.stringify(fields)}`)
+        console.log(`Missing Value Array: ${JSON.stringify(missingValueArray)}`)
         console.log(`Missing Value ${missingValue}`)
     }
 
     return (
         <div>
             {
-                apiLoading ?
+                apiLoading && crud == "update" ?
                     showSpinner()
                     :
                     < Form >
                         {showAlert()}
 
                         < Row >
-                            <Col lg={6}>
+                            <Col lg={4}>
                                 <Form.Group controlId="ticketNumber">
                                     <Form.Label >Ticket #: {crud == "update" ? id : null}</Form.Label>
                                 </Form.Group>
                             </Col>
-                            <Col lg={6}>
+                            <Col lg={4}>
                                 <Form.Group controlId="crudType">
                                     <Form.Label >CRUD Type: {crud}</Form.Label>
+                                </Form.Group>
+                            </Col>
+                            <Col lg={4}>
+                                <Form.Group controlId="ticketStatus">
+                                    <Form.Label>Ticket Status</Form.Label>
+                                    <Form.Control as="select" value={fields["ticketStatus"]} onChange={handleFieldChange}>
+                                        <option>Choose...</option>
+                                        <option>Open</option>
+                                        <option>Closed</option>
+                                    </Form.Control>
                                 </Form.Group>
                             </Col>
                         </Row >
@@ -232,18 +250,18 @@ function TicketForm() {
                             <Col lg={4} md={4}>
                                 <Form.Group controlId="severity">
                                     <Form.Label >Severity</Form.Label>
-                                    <Form.Control as={crud == "update" ? "textarea" : "select"} onChange={handleSeverity} value={fields["severity"]} readOnly={crud == "update" ? true : false}>
+                                    <Form.Control as={crud == "update" ? "textarea" : "select"} onChange={handleSeverity} value={crud == "update" ? fields["severity"] : null} readOnly={crud == "update" ? true : false}>
+
                                         {
                                             crud == "update" ?
                                                 null
                                                 :
-                                                <div>
-                                                    <option>High</option>
-                                                    <option>Medium</option>
-                                                    <option>Low</option>
-                                                </div>
+                                                Object.keys(severityObj).map((value, key) => {
+                                                    return (
+                                                        <option key={key}>{value}</option>
+                                                    )
+                                                })
                                         }
-
                                     </Form.Control>
                                 </Form.Group>
                             </Col>
@@ -251,6 +269,13 @@ function TicketForm() {
                                 <Form.Group controlId="applicationName">
                                     <Form.Label >Application</Form.Label>
                                     <Form.Control as="select" onChange={handleFieldChange} value={fields["applicationName"]}>
+                                        {
+                                            crud == "update" ?
+                                                null
+                                                :
+                                                <option>Choose...</option>
+                                        }
+
                                         {
                                             applicationArray && fields ?
                                                 applicationArray.map((value, key) => {
@@ -270,6 +295,12 @@ function TicketForm() {
                                 <Form.Group controlId="developerAssigned">
                                     <Form.Label >Developer Assigned</Form.Label>
                                     <Form.Control as="select" onChange={handleFieldChange} value={fields["developerAssigned"]}>
+                                        {
+                                            crud == "update" ?
+                                                null
+                                                :
+                                                <option>Choose...</option>
+                                        }
                                         {
                                             developerArray && fields ?
                                                 developerArray.map((value, key) => {
@@ -291,23 +322,19 @@ function TicketForm() {
                             <Col lg={4} md={6}>
                                 <Form.Group controlId="dateCreated">
                                     <Form.Label >Date Created</Form.Label>
-                                    <Form.Control readOnly defaultValue={crud == "update" ? fields["dateCreated"] : currentDate.toDateString()} />
+                                    <Form.Control readOnly defaultValue={crud == "update" && dateCreated ? dateCreated.toDateString() : currentDate.toDateString()} />
                                 </Form.Group>
                             </Col>
                             <Col lg={4} md={6} >
                                 <Form.Group controlId="dueDate">
                                     <Form.Label >Due Date</Form.Label>
-                                    <Form.Control
-                                        defaultValue={fields["dueDate"]}
-                                        onChange={handleFieldChange}
-                                        readOnly
-                                    />
+                                    <Form.Control defaultValue={dueDate ? dueDate.toDateString() : null} onChange={handleFieldChange} readOnly />
                                 </Form.Group>
                             </Col>
                             <Col lg={4} md={6} >
                                 <Form.Group controlId="userName">
                                     <Form.Label >User Name</Form.Label>
-                                    <Form.Control readOnly defaultValue={fields["userName"]} onChange={handleFieldChange} />
+                                    <Form.Control value={userName && !apiLoading ? userName : null} onChange={handleFieldChange} readOnly />
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -317,14 +344,14 @@ function TicketForm() {
                                 <Form.Group>
                                     <Button onClick={() => handleSubmit()}>
                                         Submit
-                        </Button>
+                                    </Button>
                                 </Form.Group>
                             </Col>
                             <Col xs={6}>
                                 <Form.Group>
                                     <Button onClick={(() => history.push("/home"))}>
                                         Cancel
-                        </Button>
+                                    </Button>
                                 </Form.Group>
                             </Col>
                         </Row>
