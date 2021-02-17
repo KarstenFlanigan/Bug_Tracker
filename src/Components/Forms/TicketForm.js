@@ -19,13 +19,14 @@ function TicketForm() {
     const [fields, handleFieldChange] = useFormFields(
         {
             "ticketStatus": "",
-            "userName": "",
+            "userName": "Test User",
             "dateCreated": "",
             "developerAssigned": "",
             "ticketName": "",
             "ticketDescription": "",
             "severity": "",
             "dueDate": "",
+            "applicationName": ""
         }
     )
 
@@ -35,13 +36,13 @@ function TicketForm() {
     const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
     const [getAPIStatus, setgetAPIStatus] = useState()
+    //const [putAPIStatus, setputAPIStatus] = useState()
     const [apiLoading, setapiLoading] = useState(true)
     const [developerArray, setdeveloperArray] = useState()
     const [applicationArray, setapplicationArray] = useState()
     const [ticketName, setticketName] = useState(fields["ticketName"])
-    const [dateCreated, setdateCreated] = useState(fields["dateCreated"])
     const [dueDate, setdueDate] = useState(fields["dueDate"])
-    const [userName, setuserName] = useState(fields["userName"])
+
 
     useEffect(() => {
         //console.log(`MissingValueArray ${missingValueArray}`)
@@ -69,14 +70,12 @@ function TicketForm() {
                         fields.developerAssigned = result[0].developer.developerID
                         fields.applicationName = result[0].application.applicationID
                         fields.ticketStatus = result[0].status
-                        setuserName(fields.userName)
 
                         //Doing this so there is a re-render and the fields constant values are displayed in form
                         setticketName(fields.ticketName)
-                        setdateCreated(fields.currentDate)
                         setdueDate(fields.dueDate)
 
-                        console.log(result)
+                        //console.log(result)
                     },
                     (error) => {
                         setgetAPIStatus(error)
@@ -112,10 +111,11 @@ function TicketForm() {
                     console.log(`Failed: ${getAPIStatus}`)
                 }
             )
-
-        if (!crud == "update") {
+        //Settinf fields for new tickets
+        if (crud == "create") {
             fields.userName = "Test User"
-            setuserName(fields.userName)
+            fields.dateCreated = currentDate
+            fields.ticketStatus = "Open"
         }
     }, [])
 
@@ -179,11 +179,19 @@ function TicketForm() {
 
         //Compare to see if keys(fields) exist
         //if they don't exist push missing key(field) to array which updates state array
+        let choose = "Choose..."
+
         for (const prop in fields) {
+
             if (fields[prop] == "" || null) {
                 missingValArray.push(prop)
             }
+
+            if (fields[prop] == choose) {
+                missingValArray.push(prop)
+            }
         }
+
         setmissingValueArray(missingValArray)
 
         //if there are any missing fields, change the missing value state to trigger alert
@@ -192,6 +200,48 @@ function TicketForm() {
             setmissingValue(true)
         } else {
             setmissingValue(false)
+
+            useEffect(() => {
+                const requestBody = query => (
+                    {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body:
+                            JSON.stringify(
+                                {
+                                    ...query.ticketID && crud == "update" && { tickedID: { id } },
+                                    ticketName: fields["ticketName"],
+                                    ticketDescription: fields["ticketDescription"],
+                                    severity: fields["dueDate"],
+                                    dateCreated: fields["dateCreated"],
+                                    dateDue: fields["dueDate"],
+                                    userName: fields["userName"],
+                                    status: fields["ticketStatus"],
+                                    applicationID: fields["applicationName"],
+                                    developerID: fields["developerID"],
+                                    developer: {},
+                                    application: {}
+                                }
+                            )
+                    }
+                )
+
+                console.log(`Request Body: ${requestBody}`)
+                /*
+                    fetch(`http://localhost:55306/api/tickets`, requestBody)
+                        .then(res => res.json())
+                        .then(
+                            (result) => {
+                                setputAPIStatus(result)
+                                console.log(`Success Put API: ${putAPIStatus}`)
+                            },
+                            (error) => {
+                                setputAPIStatus(error)
+                                console.log(`Error Put API: ${putAPIStatus}`)
+                            }
+                        )
+                        */
+            }, [])
         }
 
         console.log(`Submit Fields: ${JSON.stringify(fields)}`)
@@ -223,7 +273,6 @@ function TicketForm() {
                                 <Form.Group controlId="ticketStatus">
                                     <Form.Label>Ticket Status</Form.Label>
                                     <Form.Control as="select" value={fields["ticketStatus"]} onChange={handleFieldChange}>
-                                        <option>Choose...</option>
                                         <option>Open</option>
                                         <option>Closed</option>
                                     </Form.Control>
@@ -322,7 +371,7 @@ function TicketForm() {
                             <Col lg={4} md={6}>
                                 <Form.Group controlId="dateCreated">
                                     <Form.Label >Date Created</Form.Label>
-                                    <Form.Control readOnly defaultValue={crud == "update" && dateCreated ? dateCreated.toDateString() : currentDate.toDateString()} />
+                                    <Form.Control readOnly value={new Date(fields["dateCreated"]).toDateString()} onChange={handleFieldChange} />
                                 </Form.Group>
                             </Col>
                             <Col lg={4} md={6} >
@@ -334,7 +383,7 @@ function TicketForm() {
                             <Col lg={4} md={6} >
                                 <Form.Group controlId="userName">
                                     <Form.Label >User Name</Form.Label>
-                                    <Form.Control value={userName && !apiLoading ? userName : null} onChange={handleFieldChange} readOnly />
+                                    <Form.Control defaultValue={fields["userName"]} onChange={handleFieldChange} readOnly />
                                 </Form.Group>
                             </Col>
                         </Row>
