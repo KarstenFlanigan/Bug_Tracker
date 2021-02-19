@@ -36,12 +36,13 @@ function TicketForm() {
     const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
     const [getAPIStatus, setgetAPIStatus] = useState()
-    //const [putAPIStatus, setputAPIStatus] = useState()
+    const [putAPIStatus, setputAPIStatus] = useState()
     const [apiLoading, setapiLoading] = useState(true)
     const [developerArray, setdeveloperArray] = useState()
     const [applicationArray, setapplicationArray] = useState()
     const [ticketName, setticketName] = useState(fields["ticketName"])
     const [dueDate, setdueDate] = useState(fields["dueDate"])
+    const [requestBody, setrequestBody] = useState()
 
 
     useEffect(() => {
@@ -49,6 +50,45 @@ function TicketForm() {
         //console.log(`MissingValue ${missingValue}`)
         //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
     })
+
+    //Call component when requestbody changes (Submit buttohn clicked and no missing values)
+    useEffect(() => {
+
+        console.log(`Request Body Update: ${JSON.stringify(requestBody)}`)
+
+        if (crud == "update" && !missingValue) {
+            fetch(`http://localhost:55306/api/tickets/${id}`, requestBody)
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        setputAPIStatus(result)
+                        console.log(`Success Put API: ${putAPIStatus}`)
+                        console.log(`Success Result: ${result}`)
+                    },
+                    (error) => {
+                        setputAPIStatus(error)
+                        console.log(`Error Put API: ${putAPIStatus}`)
+                        console.log(`Error Result: ${error}`)
+                    }
+                )
+        } else if (crud == "create" && !missingValue) {
+            fetch(`http://localhost:55306/api/tickets`, requestBody)
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        setputAPIStatus(result)
+                        console.log(`Success Put API: ${putAPIStatus}`)
+                        console.log(result)
+                    },
+                    (error) => {
+                        setputAPIStatus(error)
+                        console.log(`Error Put API: ${putAPIStatus}`)
+                        console.log(error)
+                    }
+                )
+        }
+    }, [missingValue])
+
 
     //Call all Get APIs
     useEffect(() => {
@@ -200,53 +240,68 @@ function TicketForm() {
             setmissingValue(true)
         } else {
             setmissingValue(false)
+        }
 
-            useEffect(() => {
-                const requestBody = query => (
-                    {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body:
-                            JSON.stringify(
-                                {
-                                    ...query.ticketID && crud == "update" && { tickedID: { id } },
-                                    ticketName: fields["ticketName"],
-                                    ticketDescription: fields["ticketDescription"],
-                                    severity: fields["dueDate"],
-                                    dateCreated: fields["dateCreated"],
-                                    dateDue: fields["dueDate"],
-                                    userName: fields["userName"],
-                                    status: fields["ticketStatus"],
-                                    applicationID: fields["applicationName"],
-                                    developerID: fields["developerID"],
-                                    developer: {},
-                                    application: {}
-                                }
-                            )
+        if (!missingValue && crud == "update") {
+
+            setrequestBody(
+                {
+                    method: "put",
+                    headers: { "Content-Type": "application/json" },
+                    body:
+                        JSON.stringify({
+                            tickedID: { id },
+                            ticketName: fields["ticketName"],
+                            ticketDescription: fields["ticketDescription"],
+                            severity: fields["dueDate"],
+                            dateCreated: fields["dateCreated"],
+                            dateDue: fields["dueDate"],
+                            userName: fields["userName"],
+                            status: fields["ticketStatus"],
+                            applicationID: fields["applicationName"],
+                            developerID: fields["developerID"],
+                        })
+                }
+            )
+
+            fetch(`http://localhost:55306/api/tickets/${id}`, requestBody)
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        setputAPIStatus(result)
+                        console.log(`Success Put API: ${putAPIStatus}`)
+                    },
+                    (error) => {
+                        setputAPIStatus(error)
+                        console.log(`Error Put API: ${putAPIStatus}`)
                     }
                 )
 
-                console.log(`Request Body: ${requestBody}`)
-                /*
-                    fetch(`http://localhost:55306/api/tickets`, requestBody)
-                        .then(res => res.json())
-                        .then(
-                            (result) => {
-                                setputAPIStatus(result)
-                                console.log(`Success Put API: ${putAPIStatus}`)
-                            },
-                            (error) => {
-                                setputAPIStatus(error)
-                                console.log(`Error Put API: ${putAPIStatus}`)
-                            }
-                        )
-                        */
-            }, [])
+        } else {
+            //Need Put Request for Update and Post for New Ticket
+            setrequestBody(
+                {
+                    method: "post",
+                    headers: { "Content-Type": "application/json" },
+                    body:
+                        JSON.stringify({
+                            ticketName: fields["ticketName"],
+                            ticketDescription: fields["ticketDescription"],
+                            severity: fields["dueDate"],
+                            dateCreated: fields["dateCreated"],
+                            dateDue: fields["dueDate"],
+                            userName: fields["userName"],
+                            status: fields["ticketStatus"],
+                            applicationID: fields["applicationName"],
+                            developerID: fields["developerID"],
+                        })
+                }
+            )
         }
 
-        console.log(`Submit Fields: ${JSON.stringify(fields)}`)
-        console.log(`Missing Value Array: ${JSON.stringify(missingValueArray)}`)
-        console.log(`Missing Value ${missingValue}`)
+        //console.log(`Submit Fields: ${JSON.stringify(fields)}`)
+        //console.log(`Missing Value Array: ${JSON.stringify(missingValueArray)}`)
+        //console.log(`Missing Value ${missingValue}`)
     }
 
     return (
