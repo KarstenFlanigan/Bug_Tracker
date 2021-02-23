@@ -19,8 +19,8 @@ function TicketForm() {
     const [fields, handleFieldChange] = useFormFields(
         {
             "ticketStatus": "",
-            "userName": "Test User",
             "dateCreated": "",
+            "userName": "Test User",
             "developerAssigned": "",
             "ticketName": "",
             "ticketDescription": "",
@@ -32,7 +32,6 @@ function TicketForm() {
 
     let severityObj = { "Choose...": "", "High": "", "Medium": "", "Low": "" }
 
-    const [currentDate] = useState(new Date())
     const [missingValue, setmissingValue] = useState(true)
     const [missingValueArray, setmissingValueArray] = useState([])
     const [getAPIStatus, setgetAPIStatus] = useState()
@@ -42,22 +41,66 @@ function TicketForm() {
     const [applicationArray, setapplicationArray] = useState()
     const [ticketName, setticketName] = useState(fields["ticketName"])
     const [dueDate, setdueDate] = useState(fields["dueDate"])
-    const [requestOptions, setrequestOptions] = useState()
+    const dateCreated = new Date()
+    let requestOptions
 
+    //COMPARE ARRAY OF OBJECTS OF EXPECTED VS WHAT WAS ENTERED IN STATE
+    const handleSubmit = () => {
+        let missingValArray = []
 
-    useEffect(() => {
-        //console.log(`MissingValueArray ${missingValueArray}`)
-        //console.log(`MissingValue ${missingValue}`)
-        //console.log(`Ticket Form Fields : ${JSON.stringify(fields)}`)
-    })
+        //Compare to see if keys(fields) exist
+        //if they don't exist push missing key(field) to array which updates state array
+        let choose = "Choose..."
 
-    //Call component when requestbody changes (Submit buttohn clicked and no missing values)
-    useEffect(() => {
+        for (const prop in fields) {
 
-        //console.log(`Request Body Update: ${JSON.stringify(requestBody)}`)
-        console.log(`Request Options Update: ${JSON.stringify(requestOptions)}`)
+            if (fields[prop] == "" || null) {
+                missingValArray.push(prop)
+            }
 
-        if (crud == "update" && !missingValue) {
+            if (fields[prop] == choose) {
+                missingValArray.push(prop)
+            }
+        }
+
+        setmissingValueArray(missingValArray)
+
+        //if there are any missing fields, change the missing value state to trigger alert
+        //if no missing fields set missing state to false and send alert
+        if (missingValArray.length > 0) {
+            setmissingValue(true)
+        } else if (missingValArray.length == 0) {
+            setmissingValue(false)
+        }
+
+        console.log(`Submit Fields: ${JSON.stringify(fields)}`)
+
+        if (missingValArray.length == 0 && crud == "update") {
+            let myHeaders = new Headers()
+            myHeaders.append("Content-Type", "application/json")
+
+            let raw =
+                JSON.stringify({
+                    ticketID: id,
+                    ticketName: fields["ticketName"],
+                    ticketDescription: fields["ticketDescription"],
+                    severity: fields["severity"],
+                    dateCreated: fields["dateCreated"],
+                    dateDue: fields["dueDate"],
+                    userName: fields["userName"],
+                    status: fields["ticketStatus"],
+                    applicationID: fields["applicationName"],
+                    developerID: fields.developerAssigned
+                })
+
+            requestOptions =
+            {
+                method: "PUT",
+                headers: myHeaders,
+                body: raw,
+                redirect: "follow"
+            }
+
             fetch(`http://localhost:55306/api/tickets/${id}`, requestOptions)
                 .then(res => res.text())
                 .then(
@@ -72,7 +115,40 @@ function TicketForm() {
                         console.log(`Error Result: ${error}`)
                     }
                 )
-        } else if (crud == "create" && !missingValue) {
+
+        } else if (missingValArray.length == 0 && crud == "create") {
+
+
+            let myHeaders = new Headers()
+            myHeaders.append("Content-Type", "application/json")
+
+            let newDate = fields.dateCreated
+            newDate.setDate(newDate.getDate() - 1)
+
+            let newDueDate = fields.dueDate
+            newDueDate.setDate(newDueDate.getDate() - 1)
+
+            let raw =
+                JSON.stringify({
+                    ticketName: fields["ticketName"],
+                    ticketDescription: fields["ticketDescription"],
+                    severity: fields["severity"],
+                    dateCreated: newDate,
+                    dateDue: newDueDate,
+                    userName: fields["userName"],
+                    status: fields["ticketStatus"],
+                    applicationID: fields["applicationName"],
+                    developerID: fields.developerAssigned
+                })
+
+            requestOptions =
+            {
+                method: "POST",
+                headers: myHeaders,
+                body: raw,
+                redirect: "follow"
+            }
+
             fetch(`http://localhost:55306/api/tickets`, requestOptions)
                 .then(res => res.text())
                 .then(
@@ -88,9 +164,11 @@ function TicketForm() {
                     }
                 )
         }
-    }, [requestOptions])
+    }
 
-
+    useEffect(() => {
+        console.log(`Date Created: ${fields.dateCreated}`)
+    })
     //Call all Get APIs
     useEffect(() => {
         if (crud == "update") {
@@ -154,8 +232,8 @@ function TicketForm() {
         //Settinf fields for new tickets
         if (crud == "create") {
             fields.userName = "Test User"
-            fields.dateCreated = currentDate
             fields.ticketStatus = "Open"
+            fields.dateCreated = dateCreated
         }
     }, [])
 
@@ -210,94 +288,7 @@ function TicketForm() {
         //Adds Severity to handlefieldchange hook
         handleFieldChange(event)
     }
-    /*
-    CHANGE MISSINGV VALUE CHECK FROM CHECKING KEY TO CHECKING VALUE FOR ""
-    */
-    //COMPARE ARRAY OF OBJECTS OF EXPECTED VS WHAT WAS ENTERED IN STATE
-    const handleSubmit = () => {
-        let missingValArray = []
 
-        //Compare to see if keys(fields) exist
-        //if they don't exist push missing key(field) to array which updates state array
-        let choose = "Choose..."
-
-        for (const prop in fields) {
-
-            if (fields[prop] == "" || null) {
-                missingValArray.push(prop)
-            }
-
-            if (fields[prop] == choose) {
-                missingValArray.push(prop)
-            }
-        }
-
-        setmissingValueArray(missingValArray)
-
-        //if there are any missing fields, change the missing value state to trigger alert
-        //if no missing fields set missing state to false and send alert
-        if (missingValArray.length > 0) {
-            setmissingValue(true)
-        } else if (missingValArray.length == 0) {
-            setmissingValue(false)
-        }
-
-        if (!missingValue && crud == "update") {
-
-            let myHeaders = new Headers()
-            myHeaders.append("Content-Type", "application/json")
-
-            let raw =
-                JSON.stringify({
-                    ticketID: id,
-                    ticketName: fields["ticketName"],
-                    ticketDescription: fields["ticketDescription"],
-                    severity: fields["dueDate"],
-                    dateCreated: fields["dateCreated"],
-                    dateDue: fields["dueDate"],
-                    userName: fields["userName"],
-                    status: fields["ticketStatus"],
-                    applicationID: fields["applicationName"],
-                    developerID: fields.developerAssigned
-                })
-
-            setrequestOptions({
-                method: "PUT",
-                headers: myHeaders,
-                body: raw,
-                redirect: "follow"
-            })
-
-        } else if (!missingValue && crud == "create") {
-
-            let myHeaders = new Headers()
-            myHeaders.append("Content-Type", "application/json")
-
-            let raw =
-                JSON.stringify({
-                    ticketName: fields["ticketName"],
-                    ticketDescription: fields["ticketDescription"],
-                    severity: fields["dueDate"],
-                    dateCreated: fields["dateCreated"],
-                    dateDue: fields["dueDate"],
-                    userName: fields["userName"],
-                    status: fields["ticketStatus"],
-                    applicationID: fields["applicationName"],
-                    developerID: fields.developerAssigned
-                })
-
-            setrequestOptions({
-                method: "POST",
-                headers: myHeaders,
-                body: raw,
-                redirect: "follow"
-            })
-        }
-
-        //console.log(`Submit Fields: ${JSON.stringify(fields)}`)
-        //console.log(`Missing Value Array: ${JSON.stringify(missingValueArray)}`)
-        //console.log(`Missing Value ${missingValue}`)
-    }
 
     return (
         <div>
@@ -421,7 +412,7 @@ function TicketForm() {
                             <Col lg={4} md={6}>
                                 <Form.Group controlId="dateCreated">
                                     <Form.Label >Date Created</Form.Label>
-                                    <Form.Control readOnly value={new Date(fields["dateCreated"]).toDateString()} onChange={handleFieldChange} />
+                                    <Form.Control readOnly defaultValue={crud == "update" ? new Date(fields.dateCreated).toDateString() : new Date().toDateString()} onChange={handleFieldChange} />
                                 </Form.Group>
                             </Col>
                             <Col lg={4} md={6} >
