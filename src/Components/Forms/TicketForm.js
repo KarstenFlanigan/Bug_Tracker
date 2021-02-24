@@ -41,7 +41,9 @@ function TicketForm() {
     const [applicationArray, setapplicationArray] = useState()
     const [ticketName, setticketName] = useState(fields["ticketName"])
     const [dueDate, setdueDate] = useState(fields["dueDate"])
-    const dateCreated = new Date()
+    const [dateCreated, setdateCreated] = useState(fields.dateCreated)
+    const [success, setsuccess] = useState(false)
+    const [newTicket, setnewTicket] = useState()
     let requestOptions
 
     //COMPARE ARRAY OF OBJECTS OF EXPECTED VS WHAT WAS ENTERED IN STATE
@@ -73,7 +75,7 @@ function TicketForm() {
             setmissingValue(false)
         }
 
-        console.log(`Submit Fields: ${JSON.stringify(fields)}`)
+        //console.log(`Submit Fields: ${JSON.stringify(fields)}`)
 
         if (missingValArray.length == 0 && crud == "update") {
             let myHeaders = new Headers()
@@ -108,6 +110,7 @@ function TicketForm() {
                         setputAPIStatus(result)
                         console.log(`Success Put API: ${putAPIStatus}`)
                         console.log(`Success Result: ${result}`)
+                        setsuccess(true)
                     },
                     (error) => {
                         setputAPIStatus(error)
@@ -150,12 +153,14 @@ function TicketForm() {
             }
 
             fetch(`http://localhost:55306/api/tickets`, requestOptions)
-                .then(res => res.text())
+                .then(res => res.json())
                 .then(
                     (result) => {
                         setputAPIStatus(result)
                         console.log(`Success Post API: ${putAPIStatus}`)
-                        console.log(result)
+                        JSON.stringify(result)
+                        console.log(`New Ticket Data ${result}`)
+                        setnewTicket({ "ticketID": result.ticketID, "ticketName": result.ticketName })
                     },
                     (error) => {
                         setputAPIStatus(error)
@@ -166,9 +171,7 @@ function TicketForm() {
         }
     }
 
-    useEffect(() => {
-        console.log(`Date Created: ${fields.dateCreated}`)
-    })
+
     //Call all Get APIs
     useEffect(() => {
         if (crud == "update") {
@@ -186,6 +189,7 @@ function TicketForm() {
                         fields.dueDate = dueDateFormat
                         let dateCreatedFormat = new Date(result[0].dateCreated)
                         fields.dateCreated = dateCreatedFormat
+                        setdateCreated(dateCreatedFormat.toDateString())
                         fields.developerAssigned = result[0].developer.developerID
                         fields.applicationName = result[0].application.applicationID
                         fields.ticketStatus = result[0].status
@@ -214,7 +218,6 @@ function TicketForm() {
                     console.log(`Failed: ${getAPIStatus}`)
                 }
             )
-
         fetch(`http://localhost:55306/api/applications`)
             .then(res => res.json())
             .then(
@@ -233,9 +236,29 @@ function TicketForm() {
         if (crud == "create") {
             fields.userName = "Test User"
             fields.ticketStatus = "Open"
-            fields.dateCreated = dateCreated
+            fields.dateCreated = new Date()
         }
     }, [])
+
+    const showSuccessAlert = () => {
+        return (
+            <Alert variant="info" onClose={() => setsuccess(false)} dismissible>
+                <Alert.Heading>
+                    <p>Update Successful</p>
+                </Alert.Heading>
+            </Alert >
+        )
+    }
+
+    const showSuccessNewTicketAlert = () => {
+        return (
+            <Alert variant="info" onClose={() => history.push(`/home`)} dismissible>
+                <Alert.Heading>
+                    <p>{`Ticket #: ${newTicket.ticketID} ${newTicket.ticketName} created`}</p>
+                </Alert.Heading>
+            </Alert >
+        )
+    }
 
     const showSpinner = () => {
         return (
@@ -292,6 +315,18 @@ function TicketForm() {
 
     return (
         <div>
+            {
+                newTicket ?
+                    showSuccessNewTicketAlert()
+                    :
+                    null
+            }
+            {
+                success ?
+                    showSuccessAlert()
+                    :
+                    null
+            }
             {
                 apiLoading && crud == "update" ?
                     showSpinner()
@@ -412,7 +447,7 @@ function TicketForm() {
                             <Col lg={4} md={6}>
                                 <Form.Group controlId="dateCreated">
                                     <Form.Label >Date Created</Form.Label>
-                                    <Form.Control readOnly defaultValue={crud == "update" ? new Date(fields.dateCreated).toDateString() : new Date().toDateString()} onChange={handleFieldChange} />
+                                    <Form.Control readOnly defaultValue={crud == "update" ? dateCreated : new Date().toDateString()} onChange={handleFieldChange} />
                                 </Form.Group>
                             </Col>
                             <Col lg={4} md={6} >
@@ -432,7 +467,7 @@ function TicketForm() {
                         <Row>
                             <Col xs={6}>
                                 <Form.Group>
-                                    <Button onClick={() => handleSubmit()}>
+                                    <Button onClick={() => handleSubmit()} disabled={success || newTicket ? true : false}>
                                         Submit
                                     </Button>
                                 </Form.Group>
