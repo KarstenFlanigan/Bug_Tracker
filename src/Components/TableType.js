@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Table from 'react-bootstrap/Table'
 import Dropdown from 'react-bootstrap/Dropdown'
 import ListGroup from 'react-bootstrap/ListGroup'
@@ -9,10 +9,27 @@ import Button from 'react-bootstrap/Button'
 
 // eslint-disable-next-line no-unused-vars
 import { BrowserRouter as Router, Switch, Route, Link, Redirect, useHistory, withRouter, BrowserRouter } from 'react-router-dom'
-
 function TableType() {
 
-  //CREATE MULTI-FILTER OPTION, one for open/closed and then X
+  //const tableData2 = { "Ticket ID": "", "Ticket Name": "", "Status": "", "Application": "", "Due Date": "", "Developer Assigned": "" }
+  let tickets
+  const [tableData2, settableData2] = useState()
+
+  useEffect(async () => {
+    let response = await fetch(`http://localhost:55306/api/tickets`)
+
+    //Response.ok will be true if successfull message returned
+    if (response.ok) {
+      console.log(`Success: ${response.ok} ${response.status}`)
+      tickets = await response.json()
+      settableData2(tickets)
+    }
+    else {
+      console.log(`Failure: ${response.ok} ${response.status}`)
+    }
+  }, [])
+
+  console.log(tableData2)
 
   //Passed in prop from parent of tabletype defining what view(s) to use Ex:(developer)
   const tableType = "ticket"
