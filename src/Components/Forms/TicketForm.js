@@ -335,17 +335,13 @@ function TicketForm() {
                         {showAlert()}
 
                         < Row >
-                            <Col lg={4}>
+                            <Col lg={6}>
                                 <Form.Group controlId="ticketNumber">
-                                    <Form.Label >Ticket #: {crud == "update" ? id : null}</Form.Label>
+                                    <Form.Label >Ticket #:</Form.Label>
+                                    <Form.Control defaultValue={crud == "update" ? id : null} readOnly="true" />
                                 </Form.Group>
                             </Col>
-                            <Col lg={4}>
-                                <Form.Group controlId="crudType">
-                                    <Form.Label >CRUD Type: {crud}</Form.Label>
-                                </Form.Group>
-                            </Col>
-                            <Col lg={4}>
+                            <Col lg={6}>
                                 <Form.Group controlId="ticketStatus">
                                     <Form.Label>Ticket Status</Form.Label>
                                     <Form.Control as="select" value={fields["ticketStatus"]} onChange={handleFieldChange}>

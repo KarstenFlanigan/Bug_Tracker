@@ -6,14 +6,14 @@ import ListGroup from 'react-bootstrap/ListGroup'
 
 //import DropdownButton from 'react-bootstrap/DropdownButton'
 import Button from 'react-bootstrap/Button'
+import Spinner from 'react-bootstrap/Spinner'
 
 // eslint-disable-next-line no-unused-vars
 import { BrowserRouter as Router, Switch, Route, Link, Redirect, useHistory, withRouter, BrowserRouter } from 'react-router-dom'
+
 function TableType() {
 
-  //const tableData2 = { "Ticket ID": "", "Ticket Name": "", "Status": "", "Application": "", "Due Date": "", "Developer Assigned": "" }
-  let tickets
-  const [tableData2, settableData2] = useState()
+  const [tableData, settableData] = useState()
 
   useEffect(async () => {
     let response = await fetch(`http://localhost:55306/api/tickets`)
@@ -21,77 +21,86 @@ function TableType() {
     //Response.ok will be true if successfull message returned
     if (response.ok) {
       console.log(`Success: ${response.ok} ${response.status}`)
-      tickets = await response.json()
-      settableData2(tickets)
+      let jsonData = await response.json()
+      let tickets = []
+
+      for (const prop in jsonData) {
+        let devFName = jsonData[prop].developer.developerFirstName
+        let devLName = jsonData[prop].developer.developerLastName
+        let devName = `${devFName} ${devLName}`
+        tickets.push({
+          "Ticked ID": jsonData[prop].ticketID,
+          "Ticket Name": jsonData[prop].ticketName,
+          "Status": jsonData[prop].status,
+          "Application": jsonData[prop].application.applicationName,
+          "Severity": jsonData[prop].severity,
+          "Developer": devName
+        })
+      }
+      settableData(tickets)
     }
     else {
       console.log(`Failure: ${response.ok} ${response.status}`)
     }
   }, [])
 
-  console.log(tableData2)
+  if (!tableData) {
+    return (
+      <Spinner animation="border" role="status" size="xl">
+        <span className="sr-only">Loading...</span>
+      </Spinner>
+    )
+  }
+
+  console.log(tableData)
 
   //Passed in prop from parent of tabletype defining what view(s) to use Ex:(developer)
   const tableType = "ticket"
 
-  //Use if then statement based on tabletype prop to determine what API to call to create table
-  const tableData = [
-    { id: 1, name: 'first ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "closed" },
-    { id: 2, name: 'second ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "closed" },
-    { id: 3, name: 'third ticket', dueDate: '2020-12-29', developerName: "chris", severity: "high", application: "bug tracker", status: "open" }
-  ]
-
   //For Table Headers, define what headers we want to see
   const tableHeaders =
   {
-    id: "",
-    status: "",
-    name: "",
-    developerName: "",
-    application: "",
-    dueDate: ""
+    "Ticked ID": "",
+    "Ticket Name": "",
+    "Status": "",
+    "Application": "",
+    "Severity": "",
+    "Developer": ""
   }
 
-  //For Filter Component
-  //Pass in to TableType component and then TableView
-  //const filterCriteria = { name: "" }
 
   const filterCriteria =
   {
-    name: "",
-    status: "",
-    developerName: "",
-    application: ""
+    "Status": "",
+    "Application": "",
+    "Severity": "",
+    "Developer": ""
   }
 
-  //Unique key for the HTML TR Key (Usually the primary key of the database table)
-  //CHANGE NAME TO PRIMARY KEY?? USE THE PRIMARY KEY ID TO LINK TO FORM FOR CRUD?
-  const trKey = "id"
-
   return (
-    <TableView headers={Object.keys(tableHeaders)} filterCriteria={filterCriteria} tableData={tableData} trKey={trKey} tableType={tableType} />
+    <TableView headers={Object.keys(tableHeaders)} filterCriteria={filterCriteria} tableData={tableData} tableType={tableType} />
   )
 }
 
 //Headers passed in from parent TableType
 //Table Data for rows passed into TableBody by Filter component, since filter will modify the rows displayed
 const TableView = (props) => {
-  const { headers, filterCriteria, tableData, trKey, tableType } = props;
+  const { headers, filterCriteria, tableData, tableType } = props;
   //Pass filter name key as prop
   return (
-    <TableToolBar tableData={tableData} filterCriteria={filterCriteria} headers={headers} trKey={trKey} tableType={tableType} />
+    <TableToolBar tableData={tableData} filterCriteria={filterCriteria} headers={headers} tableType={tableType} />
   )
 }
 
 const TableToolBar = (props) => {
-  const { tableData = { tableData }, filterCriteria = { filterCriteria }, headers = { headers }, trKey = { trKey }, tableType = { tableType } } = props
+  const { tableData = { tableData }, filterCriteria = { filterCriteria }, headers = { headers }, tableType = { tableType } } = props
   return (
-    <FilterButton tableData={tableData} filterCriteria={filterCriteria} headers={headers} trKey={trKey} tableType={tableType} />
+    <FilterButton tableData={tableData} filterCriteria={filterCriteria} headers={headers} tableType={tableType} />
   )
 }
 
 const FilterButton = (props) => {
-  const { tableData = { tableData }, filterCriteria = { filterCriteria }, headers = { headers }, trKey = { trKey }, tableType = { tableType } } = props
+  const { tableData = { tableData }, filterCriteria = { filterCriteria }, headers = { headers }, tableType = { tableType } } = props
   const [filterColumnStatus, setfilterColumnStatus] = useState(false)
   const [filterStatus, setfilterStatus] = useState(false)
   const [filterColumn, setfilterColumn] = useState()
@@ -191,110 +200,14 @@ const FilterButton = (props) => {
           </Button>
         </ListGroup.Item>
       </ListGroup>
-      <TableHeader tableData={updatedTableData} filterCriteria={filterCriteria} headers={headers} trKey={trKey} tableType={tableType} />
+      <TableHeader tableData={updatedTableData} filterCriteria={filterCriteria} headers={headers} tableType={tableType} />
     </div>
   )
 }
-
-/*
-const FilterButton = (props) => {
-  const { filterCriteria, tableData } = props
-  const [filterStatus, setfilterStatus] = useState(false);
-  //SEND FILTERBY TO NEXT COMPONENT WHICH WILL ACTUALLY DO THE SORT
-  const [filterBy, setfilterBy] = useState();
- 
-  const handleClick = (selectedDropdownItem) => {
-    setfilterStatus(!filterStatus)
-    setfilterBy(selectedDropdownItem)
-    console.log("filterBY: " + filterBy + " selectedDropdownItem: " + selectedDropdownItem)
- 
-    TableBody(filterBy)
-  }
- 
-  const buildDropdownMenu = (filterName) => {
-    //Get unique filter values from passed in filter name that was chosen from table's data
-    //console.log("Build dropdown " + filterName)
-    const uniqueFilterKeyValues = [...new Set(tableData.map(value => value[filterName]))]
-    //console.log("Unique Filter Key Values " + uniqueFilterKeyValues)
-    return (
-      uniqueFilterKeyValues.map((value, index) => {
-        return (
-          <Dropdown.Item key={index} onClick={() => handleClick(value)} >
-            {value}
-          </Dropdown.Item >
-        )
-      })
-    )
-  }
-  //Use filterCriteria props passed in to create button
-  //Switches between filter and clear filter based on state that changes on handleclick
-  return (
-    <div>
-      {
-        filterStatus ?
-          <Dropdown>
-            <Dropdown.Toggle variant="success">
-              {filterCriteria} filter
-            </Dropdown.Toggle>
- 
-            <Dropdown.Menu>
-              {buildDropdownMenu(filterCriteria)}
-            </Dropdown.Menu>
-          </Dropdown >
- 
-          :
- 
-          <Button variant="success" size="md" onClick={() => handleClick()}>clear {filterCriteria} filter</Button>
-      }
-    </div>
-  )
-}
-*/
-
-/*
-//DEPRECATING
-//Need to pass in Filter Objects
-//Props passed in from Parent of Table Type and then TableType
-const TableFilter = (props) => {
-  const { tableData, filterCriteria, headers, trKey, tableType } = props;
-  const [updatedTableData, setupdatedTableData] = useState(tableData);
-  const [filterStatus, setfilterStatus] = useState(true);
- 
-  const handleClick = (filteredData) => {
-    //Changes filter status (true/false) on each click
-    setfilterStatus(!filterStatus)
-    //If filter is true (clicked) then filter data or display all data
-    return filterStatus ? tableData.filter(row => row[filterCriteria] === filteredData) : tableData
-  }
- 
-  return (
-    <div>
-      {
-        // If status true display filter or display clear button
-        filterStatus ?
-          < DropdownButton variant="secondary" title="Filter" size="md">
-            {tableData.map((row, key) => {
- 
-              return (
-                <Dropdown.Item onClick={() => setupdatedTableData(handleClick(row[filterCriteria]))} key={key} href="">
-                  {row[filterCriteria]}
-                </Dropdown.Item>
-              )
-            })}
-          </ DropdownButton >
-          :
-          <Button variant="secondary" size="md" onClick={() => setupdatedTableData(handleClick())}>Clear Filter</Button>
-      }
-      <TableButton tableData={tableData} filterCriteria={filterCriteria} tableType={tableType} />
-      <TableHeader headers={headers} rows={updatedTableData} trKey={trKey} tableType={tableType} />
-    </div>
-  )
-}
-*/
 
 const TableHeader = (props) => {
 
-  const { headers, tableData, trKey, tableType } = props;
+  const { headers, tableData, tableType } = props;
   const [headerSort, setheaderSort] = useState();
   const [sortStatus, setsortStatus] = useState(false);
 
@@ -316,15 +229,18 @@ const TableHeader = (props) => {
           })}
         </tr>
       </thead>
-      <TableBody rows={tableData} headers={headers} sortField={headerSort} sortBy={sortStatus} trKey={trKey} tableType={tableType}></TableBody>
+      <TableBody rows={tableData} headers={headers} sortField={headerSort} sortBy={sortStatus} tableType={tableType}></TableBody>
     </Table>
   )
 }
 
 const TableBody = (props) => {
-  const { headers, rows, sortField, sortBy, trKey, tableType } = props;
+  const { headers, rows, sortField, sortBy, tableType } = props;
   //on click of tr (tablerow) display the form for the row clicked
   const history = useHistory()
+  //Primary Key of row used for unique row values and to view ticketdata
+  let trKey = "Ticked ID"
+
   const handleClick = (rowID) => history.push(`${tableType}/update/${rowID}`)
 
   //If true sort by ascending or if false sort by descending, column header to sort is passed by parent component
