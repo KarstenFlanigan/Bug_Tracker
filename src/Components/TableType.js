@@ -16,7 +16,7 @@ function TableType() {
   const [tableData, settableData] = useState()
 
   useEffect(async () => {
-    let response = await fetch(`http://localhost:55306/api/tickets`)
+    let response = await fetch(`http://karstenbugtracker.azurewebsites.net/api/tickets`)
 
     //Response.ok will be true if successfull message returned
     if (response.ok) {

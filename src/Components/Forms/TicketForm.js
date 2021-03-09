@@ -103,7 +103,7 @@ function TicketForm() {
                 redirect: "follow"
             }
 
-            fetch(`http://localhost:55306/api/tickets/${id}`, requestOptions)
+            fetch(`http://karstenbugtracker.azurewebsites.net/api/tickets/${id}`, requestOptions)
                 .then(res => res.text())
                 .then(
                     (result) => {
@@ -152,7 +152,7 @@ function TicketForm() {
                 redirect: "follow"
             }
 
-            fetch(`http://localhost:55306/api/tickets`, requestOptions)
+            fetch(`http://karstenbugtracker.azurewebsites.net/api/tickets`, requestOptions)
                 .then(res => res.json())
                 .then(
                     (result) => {
@@ -175,7 +175,7 @@ function TicketForm() {
     //Call all Get APIs
     useEffect(() => {
         if (crud == "update") {
-            fetch(`http://localhost:55306/api/tickets/${id}`)
+            fetch(`http://karstenbugtracker.azurewebsites.net/api/tickets/${id}`)
                 .then(res => res.json())
                 .then(
                     (result) => {
@@ -205,7 +205,7 @@ function TicketForm() {
                     }
                 )
         }
-        fetch(`http://localhost:55306/api/developers`)
+        fetch(`http://karstenbugtracker.azurewebsites.net/api/developers`)
             .then(res => res.json())
             .then(
                 (result) => {
@@ -218,7 +218,7 @@ function TicketForm() {
                     console.log(`Failed: ${getAPIStatus}`)
                 }
             )
-        fetch(`http://localhost:55306/api/applications`)
+        fetch(`http://karstenbugtracker.azurewebsites.net/api/applications`)
             .then(res => res.json())
             .then(
                 (result) => {

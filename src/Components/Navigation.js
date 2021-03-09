@@ -23,6 +23,7 @@ function Navigation() {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav defaultActiveKey="/home" as="ul">
+                        {/*
                         <Nav.Item as="li">
                             <Nav.Link as={Link} to="/home" >Home</Nav.Link>
                         </Nav.Item>
@@ -32,6 +33,7 @@ function Navigation() {
                         <Nav.Item as="li">
                             <Nav.Link as={Link} to="/applications">Applications</Nav.Link>
                         </Nav.Item>
+                         */}
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>
